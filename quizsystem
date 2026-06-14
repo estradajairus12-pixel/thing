@@ -204,6 +204,106 @@ local Quizzes = {
             { question = "What is the main ingredient in hummus?",                   answers = { "A) Lentils", "B) Chickpeas", "C) Black Beans", "D) Peas" }, correct = "B" },
         }
     },
+    {
+        name = "Art Quiz",
+        questions = {
+            { question = "Who painted the Mona Lisa?",                answers = { "A) Van Gogh", "B) Picasso", "C) Da Vinci", "D) Michelangelo" }, correct = "C" },
+            { question = "What art movement is Salvador Dali known for?", answers = { "A) Impressionism", "B) Surrealism", "C) Cubism", "D) Realism" }, correct = "B" },
+            { question = "Which artist cut off his own ear?",          answers = { "A) Monet", "B) Van Gogh", "C) Renoir", "D) Degas" }, correct = "B" },
+            { question = "What is the art of beautiful handwriting called?", answers = { "A) Typography", "B) Calligraphy", "C) Lithography", "D) Cartography" }, correct = "B" },
+            { question = "Which museum houses the Mona Lisa?",         answers = { "A) The Met", "B) The Louvre", "C) The British Museum", "D) The Vatican" }, correct = "B" },
+        }
+    },
+    {
+        name = "Literature Quiz",
+        questions = {
+            { question = "Who wrote 'Romeo and Juliet'?",              answers = { "A) Charles Dickens", "B) Jane Austen", "C) William Shakespeare", "D) Mark Twain" }, correct = "C" },
+            { question = "What is the first book in the Harry Potter series?", answers = { "A) Chamber of Secrets", "B) Prisoner of Azkaban", "C) Philosopher's Stone", "D) Goblet of Fire" }, correct = "C" },
+            { question = "Who wrote '1984'?",                          answers = { "A) Aldous Huxley", "B) George Orwell", "C) Ray Bradbury", "D) J.R.R. Tolkien" }, correct = "B" },
+            { question = "What is the name of Sherlock Holmes' assistant?", answers = { "A) Dr. Watson", "B) Inspector Lestrade", "C) Mycroft Holmes", "D) Mrs. Hudson" }, correct = "A" },
+            { question = "Which novel features Atticus Finch?",        answers = { "A) The Great Gatsby", "B) To Kill a Mockingbird", "C) Catcher in the Rye", "D) Lord of the Flies" }, correct = "B" },
+        }
+    },
+    {
+        name = "Mythology Quiz",
+        questions = {
+            { question = "Who is the king of Greek gods?",             answers = { "A) Poseidon", "B) Hades", "C) Zeus", "D) Apollo" }, correct = "C" },
+            { question = "What creature has the body of a lion and head of a human?", answers = { "A) Griffin", "B) Sphinx", "C) Chimera", "D) Manticore" }, correct = "B" },
+            { question = "Who flew too close to the sun?",             answers = { "A) Perseus", "B) Hercules", "C) Icarus", "D) Theseus" }, correct = "C" },
+            { question = "What is the Norse tree of life called?",     answers = { "A) Yggdrasil", "B) Valhalla", "C) Asgard", "D) Bifrost" }, correct = "A" },
+            { question = "Who is the Egyptian god of the dead?",       answers = { "A) Ra", "B) Anubis", "C) Horus", "D) Osiris" }, correct = "D" },
+        }
+    },
+    {
+        name = "Computer Science Quiz",
+        questions = {
+            { question = "What does CPU stand for?",                   answers = { "A) Central Processing Unit", "B) Computer Personal Unit", "C) Central Program Utility", "D) Core Processing Unit" }, correct = "A" },
+            { question = "Which language is used for web pages?",      answers = { "A) Python", "B) Java", "C) HTML", "D) C++" }, correct = "C" },
+            { question = "What does RAM stand for?",                   answers = { "A) Read Access Memory", "B) Random Access Memory", "C) Rapid Application Memory", "D) Run All Memory" }, correct = "B" },
+            { question = "Who founded Microsoft?",                     answers = { "A) Steve Jobs", "B) Bill Gates", "C) Mark Zuckerberg", "D) Elon Musk" }, correct = "B" },
+            { question = "What year was the World Wide Web invented?", answers = { "A) 1985", "B) 1989", "C) 1991", "D) 1995" }, correct = "B" },
+        }
+    },
+    {
+        name = "Nature Quiz",
+        questions = {
+            { question = "What is the tallest tree species?",          answers = { "A) Oak", "B) Redwood", "C) Pine", "D) Maple" }, correct = "B" },
+            { question = "How many hearts does an octopus have?",      answers = { "A) 1", "B) 2", "C) 3", "D) 4" }, correct = "C" },
+            { question = "What is the fastest land animal?",           answers = { "A) Lion", "B) Cheetah", "C) Leopard", "D) Gazelle" }, correct = "B" },
+            { question = "Which planet is known as the Red Planet?",   answers = { "A) Venus", "B) Jupiter", "C) Mars", "D) Saturn" }, correct = "C" },
+            { question = "What gas do plants absorb from the air?",    answers = { "A) Oxygen", "B) Nitrogen", "C) Carbon Dioxide", "D) Hydrogen" }, correct = "C" },
+        }
+    },
+    {
+        name = "Music Theory Quiz",
+        questions = {
+            { question = "How many lines are on a musical staff?",     answers = { "A) 4", "B) 5", "C) 6", "D) 7" }, correct = "B" },
+            { question = "What note is worth 4 beats in 4/4 time?",    answers = { "A) Half Note", "B) Quarter Note", "C) Whole Note", "D) Eighth Note" }, correct = "C" },
+            { question = "Which clef is used for higher pitches?",     answers = { "A) Bass Clef", "B) Treble Clef", "C) Alto Clef", "D) Tenor Clef" }, correct = "B" },
+            { question = "What is the term for playing notes smoothly?", answers = { "A) Staccato", "B) Legato", "C) Forte", "D) Piano" }, correct = "B" },
+            { question = "How many semitones are in an octave?",       answers = { "A) 10", "B) 11", "C) 12", "D) 13" }, correct = "C" },
+        }
+    },
+    {
+        name = "World Records Quiz",
+        questions = {
+            { question = "What is the tallest building in the world?", answers = { "A) Shanghai Tower", "B) Burj Khalifa", "C) One World Trade Center", "D) Taipei 101" }, correct = "B" },
+            { question = "Who holds the record for most Olympic gold medals?", answers = { "A) Usain Bolt", "B) Michael Phelps", "C) Carl Lewis", "D) Simone Biles" }, correct = "B" },
+            { question = "What is the largest ocean on Earth?",        answers = { "A) Atlantic", "B) Indian", "C) Arctic", "D) Pacific" }, correct = "D" },
+            { question = "Which country has the largest population?",  answers = { "A) India", "B) USA", "C) China", "D) Indonesia" }, correct = "A" },
+            { question = "What is the longest river in the world?",    answers = { "A) Amazon", "B) Nile", "C) Yangtze", "D) Mississippi" }, correct = "A" },
+        }
+    },
+    {
+        name = "Inventions Quiz",
+        questions = {
+            { question = "Who invented the light bulb?",               answers = { "A) Nikola Tesla", "B) Thomas Edison", "C) Benjamin Franklin", "D) Alexander Bell" }, correct = "B" },
+            { question = "What year was the telephone invented?",      answers = { "A) 1865", "B) 1876", "C) 1885", "D) 1890" }, correct = "B" },
+            { question = "Who invented the airplane?",                 answers = { "A) Wright Brothers", "B) Leonardo da Vinci", "C) Amelia Earhart", "D) Charles Lindbergh" }, correct = "A" },
+            { question = "What did Gutenberg invent?",                 answers = { "A) Compass", "B) Printing Press", "C) Telescope", "D) Microscope" }, correct = "B" },
+            { question = "Who invented penicillin?",                   answers = { "A) Marie Curie", "B) Louis Pasteur", "C) Alexander Fleming", "D) Joseph Lister" }, correct = "C" },
+        }
+    },
+    {
+        name = "Currency Quiz",
+        questions = {
+            { question = "What is the currency of Japan?",             answers = { "A) Yuan", "B) Won", "C) Yen", "D) Ringgit" }, correct = "C" },
+            { question = "Which country uses the Euro?",               answers = { "A) Switzerland", "B) Sweden", "C) Germany", "D) Norway" }, correct = "C" },
+            { question = "What is the currency of the UK?",            answers = { "A) Euro", "B) Dollar", "C) Pound Sterling", "D) Franc" }, correct = "C" },
+            { question = "Which currency has the highest value?",      answers = { "A) USD", "B) EUR", "C) GBP", "D) KWD" }, correct = "D" },
+            { question = "What is the symbol for Bitcoin?",            answers = { "A) B", "B) ₿", "C) BTC", "D) XBT" }, correct = "B" },
+        }
+    },
+    {
+        name = "Roblox Quiz",
+        questions = {
+            { question = "When was Roblox released?",                  answers = { "A) 2004", "B) 2005", "C) 2006", "D) 2007" }, correct = "C" },
+            { question = "What was Roblox originally called?",         answers = { "A) DynaBlocks", "B) BlockWorld", "C) RoboBlocks", "D) BuildZone" }, correct = "A" },
+            { question = "What is the premium currency in Roblox?",    answers = { "A) Tix", "B) Robux", "C) Gold", "D) Credits" }, correct = "B" },
+            { question = "Who is the CEO of Roblox Corporation?",      answers = { "A) Erik Cassel", "B) David Baszucki", "C) John Shedletsky", "D) Telamon" }, correct = "B" },
+            { question = "What scripting language does Roblox use?",   answers = { "A) Python", "B) JavaScript", "C) Lua", "D) C#" }, correct = "C" },
+        }
+    },
 }
 
 -- =============================================
