@@ -430,15 +430,28 @@ local function handleAnswer(msg, playerName, displayName)
     -- Check if player is on cooldown
     if cooldowns[playerName] and tick() < cooldowns[playerName] then return end
 
-    local cleaned = normalizeAnswer(msg)
+    -- Trim whitespace
+    local trimmedMsg = msg:match("^%s*(.-)%s*$") or msg
     
     -- Only process messages that look like actual answer attempts:
+    -- 1. Single letter (a, b, c, d) - case insensitive
+    -- 2. Exact single word (no spaces allowed) - case insensitive
+    -- Reject sentences like "I hate apples!" or anything with spaces
+    
+    -- Check if message contains spaces (indicates a sentence, not an answer attempt)
+    if trimmedMsg:find("%s") then
+        return -- Ignore sentences with spaces
+    end
+    
+    local cleaned = normalizeAnswer(trimmedMsg)
+    
+    -- Validate answer format:
     -- 1. Single letter (a, b, c, d)
-    -- 2. Exact word match attempt (must be alphabetic only, no numbers/special chars mixed in sentences)
+    -- 2. Pure alphabetic word (no numbers mixed in)
     local isLetterAttempt = #cleaned == 1 and cleaned:match("^[abcd]$")
     local isWordAttempt = #cleaned > 1 and cleaned:match("^[a-z]+$")
     
-    -- If it's not a valid answer format (e.g., "I hate apples!" or random chat), ignore it completely
+    -- If it's not a valid answer format, ignore it completely
     if not isLetterAttempt and not isWordAttempt then
         return
     end
@@ -788,6 +801,21 @@ RulesTab:CreateLabel("1st = 3pts | 2nd = 2pts | 3rd = 1pt")
 RulesTab:CreateLabel("Wrong answer = 2 second wait")
 RulesTab:CreateLabel("Two wrong answers = disqualified for that question")
 RulesTab:CreateLabel("Tagged questions are retried up to 3 times")
+
+-- =============================================
+-- TAB: Version
+-- =============================================
+local VersionTab = Window:CreateTab("Version", 4483362458)
+VersionTab:CreateSection("About")
+VersionTab:CreateLabel("Quiz System v1.0")
+VersionTab:CreateLabel("Created for Roblox")
+VersionTab:CreateLabel("")
+VersionTab:CreateLabel("Features:")
+VersionTab:CreateLabel("- Multiple quizzes available")
+VersionTab:CreateLabel("- Auto-say quiz list in chat")
+VersionTab:CreateLabel("- Leaderboard tracking")
+VersionTab:CreateLabel("- Wrong answer penalty system")
+VersionTab:CreateLabel("- Customizable timing settings")
 
 -- =============================================
 -- TAB: Settings
