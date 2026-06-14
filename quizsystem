@@ -820,6 +820,148 @@ RulesTab:CreateLabel("Two wrong answers = disqualified for that question")
 RulesTab:CreateLabel("Tagged questions are retried up to 3 times")
 
 -- =============================================
+-- TAB: Secret
+-- =============================================
+local SecretTab = Window:CreateTab("Secret", 4483362458)
+SecretTab:CreateSection("Special")
+
+SecretTab:CreateButton({
+    Name = "Fly",
+    Callback = function()
+        local player = Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying, not humanoid:GetStateEnabled(Enum.HumanoidStateType.Flying))
+            Rayfield:Notify({
+                Title = "Flight Toggled",
+                Content = "Flying has been " .. (humanoid:GetStateEnabled(Enum.HumanoidStateType.Flying) and "enabled" or "disabled"),
+                Duration = 3,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Could not find Humanoid in your character.",
+                Duration = 3,
+            })
+        end
+    end
+})
+
+-- =============================================
+-- TAB: Quiz Maker
+-- =============================================
+local QuizMakerTab = Window:CreateTab("Quiz Maker", 4483362458)
+QuizMakerTab:CreateSection("Create Custom Quiz")
+
+local quizNameInput = QuizMakerTab:CreateTextbox({
+    Name = "Quiz Name",
+    PlaceholderText = "Enter quiz name...",
+    CurrentValue = "",
+})
+
+local questionInput = QuizMakerTab:CreateTextbox({
+    Name = "Question",
+    PlaceholderText = "Enter your question...",
+    CurrentValue = "",
+})
+
+local optionAInput = QuizMakerTab:CreateTextbox({
+    Name = "Option A",
+    PlaceholderText = "Enter option A...",
+    CurrentValue = "",
+})
+
+local optionBInput = QuizMakerTab:CreateTextbox({
+    Name = "Option B",
+    PlaceholderText = "Enter option B...",
+    CurrentValue = "",
+})
+
+local optionCInput = QuizMakerTab:CreateTextbox({
+    Name = "Option C",
+    PlaceholderText = "Enter option C...",
+    CurrentValue = "",
+})
+
+local optionDInput = QuizMakerTab:CreateTextbox({
+    Name = "Option D",
+    PlaceholderText = "Enter option D...",
+    CurrentValue = "",
+})
+
+local correctAnswerDropdown = QuizMakerTab:CreateDropdown({
+    Name = "Correct Answer",
+    Options = {"A", "B", "C", "D"},
+    CurrentOption = {"A"},
+    MultipleOptions = false,
+    Flag = "CorrectAnswer",
+})
+
+QuizMakerTab:CreateButton({
+    Name = "Create Quiz",
+    Callback = function()
+        local quizName = quizNameInput.CurrentValue
+        local question = questionInput.CurrentValue
+        local optA = optionAInput.CurrentValue
+        local optB = optionBInput.CurrentValue
+        local optC = optionCInput.CurrentValue
+        local optD = optionDInput.CurrentValue
+        local correct = correctAnswerDropdown.CurrentOption[1]
+        
+        if quizName == "" or question == "" or optA == "" or optB == "" or optC == "" or optD == "" then
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Please fill in all fields!",
+                Duration = 3,
+            })
+            return
+        end
+        
+        local newQuiz = {
+            name = quizName,
+            questions = {
+                {
+                    question = question,
+                    answers = {
+                        "A) " .. optA,
+                        "B) " .. optB,
+                        "C) " .. optC,
+                        "D) " .. optD
+                    },
+                    correct = correct
+                }
+            }
+        }
+        
+        table.insert(Quizzes, newQuiz)
+        
+        Rayfield:Notify({
+            Title = "Quiz Created!",
+            Content = "\"" .. quizName .. "\" has been added to the quiz list!",
+            Duration = 3,
+        })
+        
+        -- Clear inputs
+        quizNameInput:SetValue("")
+        questionInput:SetValue("")
+        optionAInput:SetValue("")
+        optionBInput:SetValue("")
+        optionCInput:SetValue("")
+        optionDInput:SetValue("")
+        correctAnswerDropdown:SetCurrentOption({"A"})
+        
+        -- Update Quiz List tab
+        local updatedListText = "Quiz List\n"
+        for i, quiz in ipairs(Quizzes) do
+            updatedListText = updatedListText .. "(" .. quiz.name .. ")\n"
+        end
+        updatedListText = updatedListText .. "1/" .. #Quizzes
+        QuizListTab:UpdateLabel(updatedListText)
+    end
+})
+
+-- =============================================
 -- TAB: Version
 -- =============================================
 local VersionTab = Window:CreateTab("Version", 4483362458)
@@ -833,6 +975,8 @@ VersionTab:CreateLabel("- Auto-say quiz list in chat")
 VersionTab:CreateLabel("- Leaderboard tracking")
 VersionTab:CreateLabel("- Wrong answer penalty system")
 VersionTab:CreateLabel("- Customizable timing settings")
+VersionTab:CreateLabel("- Custom quiz creation")
+VersionTab:CreateLabel("- Secret fly feature")
 
 -- =============================================
 -- TAB: Settings
