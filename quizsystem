@@ -414,84 +414,102 @@ end
 -- CHAT HOOK WITH WRONG ANSWER SYSTEM (BOT EXCLUDED)
 -- =============================================
 local function normalizeAnswer(msg)
-    return msg:lower():gsub("[^%w]", "")
+	-- Remove only trailing punctuation, keep internal structure for validation
+	return msg:lower():gsub("[%.%!%?]+$", "")
+end
+
+local function isValidAnswerAttempt(msg)
+	-- Trim whitespace first
+	local trimmed = msg:match("^%s*(.-)%s*$") or msg
+	
+	-- If it contains spaces, it's a sentence, not an answer
+	if trimmed:find("%s") then
+		return false
+	end
+	
+	-- Check if it's a single letter (a, b, c, d) with optional trailing punctuation
+	-- Examples: "A", "b", "C.", "d?!", "A.."
+	if trimmed:lower():match("^[abcd][%.%!%?]*$") then
+		return true
+	end
+	
+	-- Check if it's a pure alphabetic word with optional trailing punctuation
+	-- Examples: "apple", "Paris", "yellow?!", "Apple."
+	-- Must NOT contain numbers or other symbols
+	if trimmed:match("^[a-zA-Z]+[%.%!%?]*$") then
+		return true
+	end
+	
+	-- Anything else (numbers, mixed symbols, etc.) is invalid
+	return false
 end
 
 local function handleAnswer(msg, playerName, displayName)
-    if not isRunning then return end
-    if currentCorrectLetter == nil then return end
-    if correctCount >= 3 then return end
-    if scores[playerName] == nil then scores[playerName] = 0 end
-    if scores["__answered_" .. playerName .. "_q"] then return end
-    
-    -- Check if player is disqualified
-    if disqualified[playerName] then return end
-    
-    -- Check if player is on cooldown
-    if cooldowns[playerName] and tick() < cooldowns[playerName] then return end
+	if not isRunning then return end
+	if currentCorrectLetter == nil then return end
+	if correctCount >= 3 then return end
+	if scores[playerName] == nil then scores[playerName] = 0 end
+	if scores["__answered_" .. playerName .. "_q"] then return end
+	
+	-- Check if player is disqualified
+	if disqualified[playerName] then return end
+	
+	-- Check if player is on cooldown
+	if cooldowns[playerName] and tick() < cooldowns[playerName] then return end
+	
+	-- STRICT VALIDATION: Only process if it looks like a valid answer attempt
+	if not isValidAnswerAttempt(msg) then
+		return -- Ignore completely (e.g., "I hate apples!", "123", "A B")
+	end
+	
+	-- Normalize: lowercase and remove trailing punctuation
+	local cleaned = normalizeAnswer(msg)
+	
+	-- Determine if it's a letter or word attempt
+	local isLetterAttempt = cleaned:match("^[abcd]$")
+	local isWordAttempt = cleaned:match("^[a-z]+$")
+	
+	-- Double-check validity after normalization
+	if not isLetterAttempt and not isWordAttempt then
+		return
+	end
+	
+	-- Check if the answer is correct
+	if cleaned == currentCorrectLetter or cleaned == currentCorrectWord then
+		correctCount += 1
+		local pts = POINTS[correctCount] or 0
+		scores[playerName] = scores[playerName] + pts
+		scores["__answered_" .. playerName .. "_q"] = true
 
-    -- Trim whitespace
-    local trimmedMsg = msg:match("^%s*(.-)%s*$") or msg
-    
-    -- Only process messages that look like actual answer attempts:
-    -- 1. Single letter (a, b, c, d) - case insensitive
-    -- 2. Exact single word (no spaces allowed) - case insensitive
-    -- Reject sentences like "I hate apples!" or anything with spaces
-    
-    -- Check if message contains spaces (indicates a sentence, not an answer attempt)
-    if trimmedMsg:find("%s") then
-        return -- Ignore sentences with spaces
-    end
-    
-    local cleaned = normalizeAnswer(trimmedMsg)
-    
-    -- Validate answer format:
-    -- 1. Single letter (a, b, c, d)
-    -- 2. Pure alphabetic word (no numbers mixed in)
-    local isLetterAttempt = #cleaned == 1 and cleaned:match("^[abcd]$")
-    local isWordAttempt = #cleaned > 1 and cleaned:match("^[a-z]+$")
-    
-    -- If it's not a valid answer format, ignore it completely
-    if not isLetterAttempt and not isWordAttempt then
-        return
-    end
-    
-    -- Check if the answer is correct
-    if cleaned == currentCorrectLetter or cleaned == currentCorrectWord then
-        correctCount += 1
-        local pts = POINTS[correctCount] or 0
-        scores[playerName] = scores[playerName] + pts
-        scores["__answered_" .. playerName .. "_q"] = true
+		local place = { "1st", "2nd", "3rd" }
+		sayAsPlayer("Correct! " .. displayName .. " got it " .. (place[correctCount] or "") .. "! (+ " .. pts .. " pts)")
 
-        local place = { "1st", "2nd", "3rd" }
-        sayAsPlayer("Correct! " .. displayName .. " got it " .. (place[correctCount] or "") .. "! (+ " .. pts .. " pts)")
-
-        if statusLabel then
-            statusLabel:Set(displayName .. " answered " .. (place[correctCount] or "") .. " (+ " .. pts .. " pts)")
-        end
-    else
-        -- EXCLUDE THE BOT (LOCAL PLAYER) FROM WRONG ANSWER PENALTIES
-        if playerName == Players.LocalPlayer.Name then
-            return -- Bot is the quiz master, don't penalize it
-        end
-        
-        -- Wrong answer handling for other players (only if they actually attempted an answer)
-        if wrongAnswers[playerName] == nil then
-            wrongAnswers[playerName] = 0
-        end
-        
-        wrongAnswers[playerName] = wrongAnswers[playerName] + 1
-        
-        if wrongAnswers[playerName] == 1 then
-            -- First wrong answer - 2 second cooldown
-            sayAsPlayer(displayName .. " got it wrong! Wait 2 seconds to answer again.")
-            cooldowns[playerName] = tick() + 2
-        elseif wrongAnswers[playerName] >= 2 then
-            -- Second wrong answer - disqualified for this question
-            sayAsPlayer(displayName .. " got it wrong twice! You are out for this question.")
-            disqualified[playerName] = true
-        end
-    end
+		if statusLabel then
+			statusLabel:Set(displayName .. " answered " .. (place[correctCount] or "") .. " (+ " .. pts .. " pts)")
+		end
+	else
+		-- EXCLUDE THE BOT (LOCAL PLAYER) FROM WRONG ANSWER PENALTIES
+		if playerName == Players.LocalPlayer.Name then
+			return -- Bot is the quiz master, don't penalize it
+		end
+		
+		-- Wrong answer handling for other players
+		if wrongAnswers[playerName] == nil then
+			wrongAnswers[playerName] = 0
+		end
+		
+		wrongAnswers[playerName] = wrongAnswers[playerName] + 1
+		
+		if wrongAnswers[playerName] == 1 then
+			-- First wrong answer - 2 second cooldown
+			sayAsPlayer(displayName .. " got it wrong! Wait 2 seconds to answer again.")
+			cooldowns[playerName] = tick() + 2
+		elseif wrongAnswers[playerName] >= 2 then
+			-- Second wrong answer - disqualified for this question
+			sayAsPlayer(displayName .. " got it wrong twice! You are out for this question.")
+			disqualified[playerName] = true
+		end
+	end
 end
 
 local function hookChat()
