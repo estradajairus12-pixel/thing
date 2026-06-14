@@ -340,8 +340,10 @@ local function hookChatFilter()
     local function connectChannel(channel)
         if channel then
             channel.MessageReceived:Connect(function(message)
+                -- Check if this is our recently sent message that got filtered
                 if lastSentText and (tick() - lastSentTime) < 3 then
-                    if message.Text:find("###") and not lastSentText:find("###") then
+                    -- If the received message has ### tags, it means our message was filtered
+                    if message.Text:find("###") then
                         wasLastMessageTagged = true
                     end
                     lastSentText = nil
