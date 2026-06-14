@@ -94,6 +94,16 @@ local Quizzes = {
             { question = "What is the longest episode in the series?",               answers = { "A) The King", "B) The Warden", "C) Hardcore Manhunt", "D) The Far Lands" }, correct = "A" },
         }
     },
+    {
+        name = "Test Quiz 2",
+        questions = {
+            { question = "What is the largest planet in our solar system?",          answers = { "A) Earth", "B) Mars", "C) Jupiter", "D) Saturn" }, correct = "C" },
+            { question = "How many continents are there on Earth?",                  answers = { "A) 5", "B) 6", "C) 7", "D) 8" }, correct = "C" },
+            { question = "What is the fastest land animal?",                         answers = { "A) Lion", "B) Cheetah", "C) Leopard", "D) Tiger" }, correct = "B" },
+            { question = "What year did World War II end?",                          answers = { "A) 1943", "B) 1944", "C) 1945", "D) 1946" }, correct = "C" },
+            { question = "What is the hardest natural substance on Earth?",          answers = { "A) Gold", "B) Iron", "C) Diamond", "D) Platinum" }, correct = "C" },
+        }
+    },
 }
 
 -- =============================================
