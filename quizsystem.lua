@@ -7,9 +7,9 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 -- Bump this every time you change the script so you can tell what's running in-game.
-local VERSION = "1.1.3"
+local VERSION = "1.1.4"
 local VERSION_DATE = "2026-06-14"
-local VERSION_NOTE = "Removed custom quiz maker"
+local VERSION_NOTE = "Reload fix - copy full script from quizsystem.lua"
 
 -- =============================================
 -- QUIZZES
@@ -1188,11 +1188,13 @@ VersionTab:CreateLabel("- Secret fly feature")
 -- =============================================
 -- INIT
 -- =============================================
+print("[Quiz System] Loaded v" .. VERSION .. " - " .. VERSION_NOTE)
+
 hookChat()
 hookChatFilter() 
 
 Rayfield:Notify({
     Title = "Quiz System v" .. VERSION,
-    Content = "Pick a quiz to start!",
-    Duration = 4,
+    Content = "If this is not v1.1.4, paste the latest script and run again.",
+    Duration = 5,
 })
