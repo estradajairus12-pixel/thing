@@ -94,6 +94,16 @@ local Quizzes = {
             { question = "What is the longest episode in the series?",               answers = { "A) The King", "B) The Warden", "C) Hardcore Manhunt", "D) The Far Lands" }, correct = "A" },
         }
     },
+    {
+        name = "Test Quiz 2",
+        questions = {
+            { question = "What is the largest planet in our solar system?",          answers = { "A) Earth", "B) Mars", "C) Jupiter", "D) Saturn" }, correct = "C" },
+            { question = "How many continents are there on Earth?",                  answers = { "A) 5", "B) 6", "C) 7", "D) 8" }, correct = "C" },
+            { question = "What is the fastest land animal?",                         answers = { "A) Lion", "B) Cheetah", "C) Leopard", "D) Tiger" }, correct = "B" },
+            { question = "What year did World War II end?",                          answers = { "A) 1943", "B) 1944", "C) 1945", "D) 1946" }, correct = "C" },
+            { question = "What is the hardest natural substance on Earth?",          answers = { "A) Gold", "B) Iron", "C) Diamond", "D) Platinum" }, correct = "C" },
+        }
+    },
 }
 
 -- =============================================
@@ -390,6 +400,10 @@ local function runQuiz(quiz, leaderboardTab)
     isStopped = false
     scores = {}
 
+    -- Auto-say Terms of Service at the start of each quiz (prank mode!)
+    autoSayTermsOfService()
+    task.wait(2)
+
     task.spawn(function()
         for i, q in ipairs(quiz.questions) do
             if isStopped then break end
@@ -605,6 +619,62 @@ RulesTab:CreateLabel("1st = 3pts | 2nd = 2pts | 3rd = 1pt")
 RulesTab:CreateLabel("Wrong answer = 2 second wait")
 RulesTab:CreateLabel("Two wrong answers = disqualified for that question")
 RulesTab:CreateLabel("Tagged questions are retried up to 3 times")
+
+-- =============================================
+-- TAB: Terms of Service
+-- =============================================
+local TermsOfServiceTab = Window:CreateTab("Terms of Service", 4483362458)
+TermsOfServiceTab:CreateSection("Legal Agreement")
+TermsOfServiceTab:CreateLabel("By participating in this quiz experience, you acknowledge the following:")
+TermsOfServiceTab:CreateLabel("• The adjudication of quiz participation is subject to the discretionary prerogatives of the system administrator.")
+TermsOfServiceTab:CreateLabel("• Any attempt at obfuscation, prevarication, or mendacious responses may result in immediate disqualification.")
+TermsOfServiceTab:CreateLabel("• The arbiter of correctness maintains sole authority in determining the veracity of submitted answers.")
+TermsOfServiceTab:CreateLabel("• Participants implicitly consent to the ephemeral nature of leaderboard standings.")
+TermsOfServiceTab:CreateLabel("• The utilization of external mnemonic augmentation devices is strictly proscribed.")
+
+TermsOfServiceTab:CreateSection("Auto-Read TOS")
+TermsOfServiceTab:CreateButton({
+    Name = "Read Terms of Service Aloud",
+    Callback = function()
+        autoSayTermsOfService()
+    end
+})
+
+TermsOfServiceTab:CreateSection("Disclaimer")
+TermsOfServiceTab:CreateLabel("Note: This agreement is binding upon commencement of quiz participation.")
+TermsOfServiceTab:CreateLabel("Ignorance of these stipulations does not constitute exemption from compliance.")
+
+-- =============================================
+-- AUTO-SAY TERMS OF SERVICE (Complex Legal Jargon)
+-- =============================================
+local function autoSayTermsOfService()
+    task.spawn(function()
+        local tos = {
+            "======================",
+            "TERMS OF SERVICE AGREEMENT",
+            "======================",
+            "Pursuant to your participation in this interactive interrogative experience, you hereby acknowledge and assent to the following stipulations:",
+            "The adjudicative authority reserves the unilateral prerogative to determine the veracity and acceptability of all respondent submissions.",
+            "Any attempt at prevarication, obfuscation, or deliberate dissemination of factually incongruous information shall result in immediate temporal suspension.",
+            "Participants are hereby notified that duplicity in response methodology will incur a mandatory two-second intermission before subsequent attempts.",
+            "The accumulation of two erroneous submissions shall constitute grounds for immediate disqualification from the current interrogative segment.",
+            "Leaderboard standings are ephemeral in nature and subject to fluctuation based upon the comparative performance metrics of all participating entities.",
+            "The utilization of external mnemonic augmentation systems,包括但不限于 third-party informational repositories, is strictly proscribed.",
+            "All determinations made by the system arbiter are final and binding, with no provision for appellate review or reconsideration.",
+            "By continuing participation, you implicitly waive any right to contest the methodological framework employed in score calculation.",
+            "This agreement supersedes any prior understandings and constitutes the entire accord between participant and system.",
+            "======================",
+            "Acknowledgment of these terms is implicit through continued engagement with the quiz mechanism.",
+            "======================",
+        }
+        
+        for _, line in ipairs(tos) do
+            if isStopped then break end
+            sayAsPlayer(line)
+            task.wait(3) -- 3 second pause between each message
+        end
+    end)
+end
 
 -- =============================================
 -- TAB: Settings
