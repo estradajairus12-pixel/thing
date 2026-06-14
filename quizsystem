@@ -392,6 +392,38 @@ local function hookChat()
 end
 
 -- =============================================
+-- AUTO-SAY TERMS OF SERVICE (Complex Legal Jargon)
+-- =============================================
+local function autoSayTermsOfService()
+    task.spawn(function()
+        local tos = {
+            "======================",
+            "TERMS OF SERVICE AGREEMENT",
+            "======================",
+            "Pursuant to your participation in this interactive interrogative experience, you hereby acknowledge and assent to the following stipulations:",
+            "The adjudicative authority reserves the unilateral prerogative to determine the veracity and acceptability of all respondent submissions.",
+            "Any attempt at prevarication, obfuscation, or deliberate dissemination of factually incongruous information shall result in immediate temporal suspension.",
+            "Participants are hereby notified that duplicity in response methodology will incur a mandatory two-second intermission before subsequent attempts.",
+            "The accumulation of two erroneous submissions shall constitute grounds for immediate disqualification from the current interrogative segment.",
+            "Leaderboard standings are ephemeral in nature and subject to fluctuation based upon the comparative performance metrics of all participating entities.",
+            "The utilization of external mnemonic augmentation systems,包括但不限于 third-party informational repositories, is strictly proscribed.",
+            "All determinations made by the system arbiter are final and binding, with no provision for appellate review or reconsideration.",
+            "By continuing participation, you implicitly waive any right to contest the methodological framework employed in score calculation.",
+            "This agreement supersedes any prior understandings and constitutes the entire accord between participant and system.",
+            "======================",
+            "Acknowledgment of these terms is implicit through continued engagement with the quiz mechanism.",
+            "======================",
+        }
+        
+        for _, line in ipairs(tos) do
+            if isStopped then break end
+            sayAsPlayer(line)
+            task.wait(3) -- 3 second pause between each message
+        end
+    end)
+end
+
+-- =============================================
 -- QUIZ RUNNER
 -- =============================================
 local function runQuiz(quiz, leaderboardTab)
@@ -636,6 +668,10 @@ TermsOfServiceTab:CreateSection("Auto-Read TOS")
 TermsOfServiceTab:CreateButton({
     Name = "Read Terms of Service Aloud",
     Callback = function()
+        if not isRunning then
+            warn("[TOS Button] Quiz not running, skipping auto-say")
+            return
+        end
         autoSayTermsOfService()
     end
 })
@@ -643,38 +679,6 @@ TermsOfServiceTab:CreateButton({
 TermsOfServiceTab:CreateSection("Disclaimer")
 TermsOfServiceTab:CreateLabel("Note: This agreement is binding upon commencement of quiz participation.")
 TermsOfServiceTab:CreateLabel("Ignorance of these stipulations does not constitute exemption from compliance.")
-
--- =============================================
--- AUTO-SAY TERMS OF SERVICE (Complex Legal Jargon)
--- =============================================
-local function autoSayTermsOfService()
-    task.spawn(function()
-        local tos = {
-            "======================",
-            "TERMS OF SERVICE AGREEMENT",
-            "======================",
-            "Pursuant to your participation in this interactive interrogative experience, you hereby acknowledge and assent to the following stipulations:",
-            "The adjudicative authority reserves the unilateral prerogative to determine the veracity and acceptability of all respondent submissions.",
-            "Any attempt at prevarication, obfuscation, or deliberate dissemination of factually incongruous information shall result in immediate temporal suspension.",
-            "Participants are hereby notified that duplicity in response methodology will incur a mandatory two-second intermission before subsequent attempts.",
-            "The accumulation of two erroneous submissions shall constitute grounds for immediate disqualification from the current interrogative segment.",
-            "Leaderboard standings are ephemeral in nature and subject to fluctuation based upon the comparative performance metrics of all participating entities.",
-            "The utilization of external mnemonic augmentation systems,包括但不限于 third-party informational repositories, is strictly proscribed.",
-            "All determinations made by the system arbiter are final and binding, with no provision for appellate review or reconsideration.",
-            "By continuing participation, you implicitly waive any right to contest the methodological framework employed in score calculation.",
-            "This agreement supersedes any prior understandings and constitutes the entire accord between participant and system.",
-            "======================",
-            "Acknowledgment of these terms is implicit through continued engagement with the quiz mechanism.",
-            "======================",
-        }
-        
-        for _, line in ipairs(tos) do
-            if isStopped then break end
-            sayAsPlayer(line)
-            task.wait(3) -- 3 second pause between each message
-        end
-    end)
-end
 
 -- =============================================
 -- TAB: Settings
