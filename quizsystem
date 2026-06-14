@@ -432,6 +432,17 @@ local function handleAnswer(msg, playerName, displayName)
 
     local cleaned = normalizeAnswer(msg)
     
+    -- Only process messages that look like actual answer attempts:
+    -- 1. Single letter (a, b, c, d)
+    -- 2. Exact word match attempt (must be alphabetic only, no numbers/special chars mixed in sentences)
+    local isLetterAttempt = #cleaned == 1 and cleaned:match("^[abcd]$")
+    local isWordAttempt = #cleaned > 1 and cleaned:match("^[a-z]+$")
+    
+    -- If it's not a valid answer format (e.g., "I hate apples!" or random chat), ignore it completely
+    if not isLetterAttempt and not isWordAttempt then
+        return
+    end
+    
     -- Check if the answer is correct
     if cleaned == currentCorrectLetter or cleaned == currentCorrectWord then
         correctCount += 1
@@ -440,10 +451,10 @@ local function handleAnswer(msg, playerName, displayName)
         scores["__answered_" .. playerName .. "_q"] = true
 
         local place = { "1st", "2nd", "3rd" }
-        sayAsPlayer("Correct! " .. displayName .. " got it " .. (place[correctCount] or "") .. "! (+" .. pts .. " pts)")
+        sayAsPlayer("Correct! " .. displayName .. " got it " .. (place[correctCount] or "") .. "! (+ " .. pts .. " pts)")
 
         if statusLabel then
-            statusLabel:Set(displayName .. " answered " .. (place[correctCount] or "") .. " (+" .. pts .. " pts)")
+            statusLabel:Set(displayName .. " answered " .. (place[correctCount] or "") .. " (+ " .. pts .. " pts)")
         end
     else
         -- EXCLUDE THE BOT (LOCAL PLAYER) FROM WRONG ANSWER PENALTIES
@@ -451,7 +462,7 @@ local function handleAnswer(msg, playerName, displayName)
             return -- Bot is the quiz master, don't penalize it
         end
         
-        -- Wrong answer handling for other players
+        -- Wrong answer handling for other players (only if they actually attempted an answer)
         if wrongAnswers[playerName] == nil then
             wrongAnswers[playerName] = 0
         end
