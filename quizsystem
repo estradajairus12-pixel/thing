@@ -724,19 +724,38 @@ QuizListTab:CreateButton({
         end
         Rayfield:Notify({
             Title = "Listing Quizzes",
-            Content = "Announcing all quizzes in chat with 6 second pauses...",
+            Content = "Announcing all quizzes in chat (10 per message) with 6 second pauses...",
             Duration = 3,
         })
         task.spawn(function()
-            sayAsPlayer("Quiz List")
-            task.wait(6)
-            for i, quiz in ipairs(Quizzes) do
-                if isStopped then break end
-                sayAsPlayer("(" .. quiz.name .. ")")
-                task.wait(6)
+            local quizNames = {}
+            for _, quiz in ipairs(Quizzes) do
+                table.insert(quizNames, quiz.name)
             end
-            if not isStopped then
-                sayAsPlayer("1/" .. #Quizzes)
+            table.sort(quizNames)
+            
+            local totalQuizzes = #quizNames
+            local batchSize = 10
+            local currentIndex = 1
+            
+            while currentIndex <= totalQuizzes and not isStopped do
+                local endIndex = math.min(currentIndex + batchSize - 1, totalQuizzes)
+                local messageParts = {"Quiz List"}
+                
+                for i = currentIndex, endIndex do
+                    table.insert(messageParts, "(" .. quizNames[i] .. ")")
+                end
+                
+                table.insert(messageParts, currentIndex .. "/" .. totalQuizzes)
+                
+                local fullMessage = table.concat(messageParts, "\n")
+                sayAsPlayer(fullMessage)
+                
+                currentIndex = endIndex + 1
+                
+                if currentIndex <= totalQuizzes and not isStopped then
+                    task.wait(6)
+                end
             end
         end)
     end
