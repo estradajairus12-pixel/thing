@@ -3,6 +3,8 @@
 
 local Players = game:GetService("Players")
 local TextChatService = game:GetService("TextChatService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 -- =============================================
 -- QUIZZES
@@ -335,19 +337,16 @@ end
 local lastSentText = nil
 local lastSentTime = 0
 local wasLastMessageTagged = false
-local pendingMessages = {} -- Track multiple pending messages
 
 local function hookChatFilter()
     local function connectChannel(channel)
         if channel then
             channel.MessageReceived:Connect(function(message)
-                -- Simple check: if message has ### tags, mark it as filtered
-                if message.Text:find("###") then
-                    wasLastMessageTagged = true
-                    -- Clear pending messages
-                    for k in pairs(pendingMessages) do
-                        pendingMessages[k] = nil
+                if lastSentText and (tick() - lastSentTime) < 3 then
+                    if message.Text:find("###") and not lastSentText:find("###") then
+                        wasLastMessageTagged = true
                     end
+                    lastSentText = nil
                 end
             end)
         end
@@ -371,7 +370,6 @@ local function hookChatFilter()
 end
 
 local function isTagged(str)
-    if not str then return false end
     return str:find("###") ~= nil
 end
 
@@ -385,15 +383,13 @@ local function sendWithRetry(text, type)
         wasLastMessageTagged = false
         lastSentText = text
         lastSentTime = tick()
-        pendingMessages[text] = { time = tick(), text = text }
         
         sayAsPlayer(text)
         
-        task.wait(2.5) 
+        task.wait(2) 
         if isStopped then return false end
         
-        -- Simple check: was the message tagged?
-        local tagged = wasLastMessageTagged
+        local tagged = wasLastMessageTagged or isTagged(text)
         
         if tagged then
             tagCount = tagCount + 1
@@ -432,6 +428,11 @@ local disqualified         = {} -- Tracks disqualified players per question
 local statusLabel          = nil
 local questionLabel        = nil
 local timerLabel           = nil
+local flyEnabled           = false
+local flyConn              = nil
+local flyBv                = nil
+local flyBg                = nil
+local FLY_SPEED            = 50
 
 local QUESTION_READ_TIME = 4
 local ANSWER_TIME        = 10
@@ -493,7 +494,7 @@ local function showLeaderboard(leaderboardTab)
         for rank, entry in ipairs(sorted) do
             if isStopped then return end
             local place = medals[rank] or "#" .. rank
-            local line = place .. " - [Player Name] - " .. entry.points .. " pts"
+            local line = place .. " - " .. entry.name .. " - " .. entry.points .. " pts"
             sayAsPlayer(line)
             task.wait(5) 
             pcall(function()
@@ -605,26 +606,85 @@ local function handleAnswer(msg, playerName, displayName)
 	end
 end
 
+local hookedChatPlayers = {}
+local hookedTextChannels = {}
+local recentAnswerKeys = {}
+
+local function tryHandleAnswer(msg, playerName, displayName)
+	local key = playerName .. "\0" .. msg .. "\0" .. tostring(math.floor(tick() * 20))
+	if recentAnswerKeys[key] then return end
+	recentAnswerKeys[key] = true
+	task.delay(0.25, function()
+		recentAnswerKeys[key] = nil
+	end)
+	handleAnswer(msg, playerName, displayName)
+end
+
+local function getSenderFromMessage(message)
+	if message.TextSource and message.TextSource.UserId and message.TextSource.UserId > 0 then
+		local player = Players:GetPlayerByUserId(message.TextSource.UserId)
+		local displayName = message.TextSource.Name or (player and player.DisplayName) or "Player"
+		local playerName = player and player.Name or displayName
+		return playerName, displayName
+	end
+	if message.User and message.User.Id and message.User.Id > 0 then
+		local player = Players:GetPlayerByUserId(message.User.Id)
+		local displayName = message.User.DisplayName or (player and player.DisplayName) or "Player"
+		local playerName = player and player.Name or displayName
+		return playerName, displayName
+	end
+	return nil
+end
+
+local function hookTextChannel(channel)
+	if hookedTextChannels[channel] then return end
+	hookedTextChannels[channel] = true
+	channel.MessageReceived:Connect(function(message)
+		local playerName, displayName = getSenderFromMessage(message)
+		if not playerName then return end
+		tryHandleAnswer(message.Text, playerName, displayName)
+	end)
+end
+
+local function hookPlayerChat(player)
+	if hookedChatPlayers[player] then return end
+	hookedChatPlayers[player] = true
+	player.Chatted:Connect(function(msg)
+		tryHandleAnswer(msg, player.Name, player.DisplayName)
+	end)
+end
+
 local function hookChat()
-    -- Use TextChatService for all chat monitoring (works with new Roblox chat)
-    task.spawn(function()
-        local channels = TextChatService:WaitForChild("TextChannels", 5)
-        if channels then
-            local general = channels:FindFirstChild("RBXGeneral")
-            if general then
-                general.MessageReceived:Connect(function(message)
-                    -- Get player name
-                    local playerName = message.User.DisplayName
-                    local player = Players:GetPlayerFromUserId(message.User.Id)
-                    if player then
-                        playerName = player.Name
-                    end
-                    
-                    handleAnswer(message.Text, playerName, message.User.DisplayName)
-                end)
-            end
-        end
-    end)
+	for _, player in ipairs(Players:GetPlayers()) do
+		hookPlayerChat(player)
+	end
+	Players.PlayerAdded:Connect(hookPlayerChat)
+
+	task.spawn(function()
+		local function hookAllChannels(channels)
+			for _, channel in ipairs(channels:GetChildren()) do
+				if channel:IsA("TextChannel") then
+					hookTextChannel(channel)
+				end
+			end
+			channels.ChildAdded:Connect(function(child)
+				if child:IsA("TextChannel") then
+					hookTextChannel(child)
+				end
+			end)
+		end
+
+		local channels = TextChatService:WaitForChild("TextChannels", 15)
+		if channels then
+			hookAllChannels(channels)
+		end
+
+		TextChatService.ChildAdded:Connect(function(child)
+			if child.Name == "TextChannels" then
+				hookAllChannels(child)
+			end
+		end)
+	end)
 end
 
 -- =============================================
@@ -836,7 +896,7 @@ for i, quiz in ipairs(Quizzes) do
 end
 quizListText = quizListText .. "1/" .. #Quizzes
 
-QuizListTab:CreateLabel(quizListText)
+local quizListLabel = QuizListTab:CreateLabel(quizListText)
 
 QuizListTab:CreateSection("Actions")
 QuizListTab:CreateButton({
@@ -914,6 +974,84 @@ RulesTab:CreateLabel("Two wrong answers = disqualified for that question")
 RulesTab:CreateLabel("Tagged questions are retried up to 3 times")
 
 -- =============================================
+-- FLY
+-- =============================================
+local function stopFly()
+    flyEnabled = false
+    if flyConn then
+        flyConn:Disconnect()
+        flyConn = nil
+    end
+    if flyBv then
+        flyBv:Destroy()
+        flyBv = nil
+    end
+    if flyBg then
+        flyBg:Destroy()
+        flyBg = nil
+    end
+    local character = Players.LocalPlayer.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.PlatformStand = false
+        end
+    end
+end
+
+local function startFly()
+    local character = Players.LocalPlayer.Character
+    if not character then return false end
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not root then return false end
+
+    stopFly()
+    flyEnabled = true
+    humanoid.PlatformStand = true
+
+    flyBv = Instance.new("BodyVelocity")
+    flyBv.Name = "QuizFlyVelocity"
+    flyBv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    flyBv.Velocity = Vector3.zero
+    flyBv.Parent = root
+
+    flyBg = Instance.new("BodyGyro")
+    flyBg.Name = "QuizFlyGyro"
+    flyBg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    flyBg.P = 1000
+    flyBg.D = 100
+    flyBg.CFrame = root.CFrame
+    flyBg.Parent = root
+
+    flyConn = RunService.RenderStepped:Connect(function()
+        if not flyEnabled or not root.Parent then
+            stopFly()
+            return
+        end
+
+        local cam = workspace.CurrentCamera
+        local dir = Vector3.zero
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0, 1, 0) end
+
+        if dir.Magnitude > 0 then
+            flyBv.Velocity = dir.Unit * FLY_SPEED
+        else
+            flyBv.Velocity = Vector3.zero
+        end
+        flyBg.CFrame = cam.CFrame
+    end)
+
+    return true
+end
+
+-- =============================================
 -- TAB: Secret
 -- =============================================
 local SecretTab = Window:CreateTab("Secret", 4483362458)
@@ -922,155 +1060,31 @@ SecretTab:CreateSection("Special")
 SecretTab:CreateButton({
     Name = "Fly",
     Callback = function()
-        local player = Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying, not humanoid:GetStateEnabled(Enum.HumanoidStateType.Flying))
+        if flyEnabled then
+            stopFly()
             Rayfield:Notify({
                 Title = "Flight Toggled",
-                Content = "Flying has been " .. (humanoid:GetStateEnabled(Enum.HumanoidStateType.Flying) and "enabled" or "disabled"),
+                Content = "Flying disabled.",
+                Duration = 3,
+            })
+            return
+        end
+
+        if startFly() then
+            Rayfield:Notify({
+                Title = "Flight Toggled",
+                Content = "Flying enabled. Use WASD, Space, and Ctrl.",
                 Duration = 3,
             })
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Could not find Humanoid in your character.",
+                Content = "Could not start flight. Make sure your character is loaded.",
                 Duration = 3,
             })
         end
     end
 })
-
--- =============================================
--- TAB: Quiz Maker
--- =============================================
-local QuizMakerTab = Window:CreateTab("Quiz Maker", 4483362458)
-QuizMakerTab:CreateSection("Create Custom Quiz")
-
-local quizNameInput = QuizMakerTab:CreateTextbox({
-    Name = "Quiz Name",
-    PlaceholderText = "Enter quiz name...",
-    CurrentValue = "",
-})
-
-local questionInput = QuizMakerTab:CreateTextbox({
-    Name = "Question",
-    PlaceholderText = "Enter your question...",
-    CurrentValue = "",
-})
-
-local optionAInput = QuizMakerTab:CreateTextbox({
-    Name = "Option A",
-    PlaceholderText = "Enter option A...",
-    CurrentValue = "",
-})
-
-local optionBInput = QuizMakerTab:CreateTextbox({
-    Name = "Option B",
-    PlaceholderText = "Enter option B...",
-    CurrentValue = "",
-})
-
-local optionCInput = QuizMakerTab:CreateTextbox({
-    Name = "Option C",
-    PlaceholderText = "Enter option C...",
-    CurrentValue = "",
-})
-
-local optionDInput = QuizMakerTab:CreateTextbox({
-    Name = "Option D",
-    PlaceholderText = "Enter option D...",
-    CurrentValue = "",
-})
-
-local correctAnswerDropdown = QuizMakerTab:CreateDropdown({
-    Name = "Correct Answer",
-    Options = {"A", "B", "C", "D"},
-    CurrentOption = {"A"},
-    MultipleOptions = false,
-    Flag = "CorrectAnswer",
-})
-
-QuizMakerTab:CreateButton({
-    Name = "Create Quiz",
-    Callback = function()
-        local quizName = quizNameInput.CurrentValue
-        local question = questionInput.CurrentValue
-        local optA = optionAInput.CurrentValue
-        local optB = optionBInput.CurrentValue
-        local optC = optionCInput.CurrentValue
-        local optD = optionDInput.CurrentValue
-        local correct = correctAnswerDropdown.CurrentOption[1]
-        
-        if quizName == "" or question == "" or optA == "" or optB == "" or optC == "" or optD == "" then
-            Rayfield:Notify({
-                Title = "Error",
-                Content = "Please fill in all fields!",
-                Duration = 3,
-            })
-            return
-        end
-        
-        local newQuiz = {
-            name = quizName,
-            questions = {
-                {
-                    question = question,
-                    answers = {
-                        "A) " .. optA,
-                        "B) " .. optB,
-                        "C) " .. optC,
-                        "D) " .. optD
-                    },
-                    correct = correct
-                }
-            }
-        }
-        
-        table.insert(Quizzes, newQuiz)
-        
-        Rayfield:Notify({
-            Title = "Quiz Created!",
-            Content = "\"" .. quizName .. "\" has been added to the quiz list!",
-            Duration = 3,
-        })
-        
-        -- Clear inputs
-        quizNameInput:SetValue("")
-        questionInput:SetValue("")
-        optionAInput:SetValue("")
-        optionBInput:SetValue("")
-        optionCInput:SetValue("")
-        optionDInput:SetValue("")
-        correctAnswerDropdown:SetCurrentOption({"A"})
-        
-        -- Update Quiz List tab
-        local updatedListText = "Quiz List\n"
-        for i, quiz in ipairs(Quizzes) do
-            updatedListText = updatedListText .. "(" .. quiz.name .. ")\n"
-        end
-        updatedListText = updatedListText .. "1/" .. #Quizzes
-        QuizListTab:UpdateLabel(updatedListText)
-    end
-})
-
--- =============================================
--- TAB: Version
--- =============================================
-local VersionTab = Window:CreateTab("Version", 4483362458)
-VersionTab:CreateSection("About")
-VersionTab:CreateLabel("Quiz System v1.0")
-VersionTab:CreateLabel("Created for Roblox")
-VersionTab:CreateLabel("")
-VersionTab:CreateLabel("Features:")
-VersionTab:CreateLabel("- Multiple quizzes available")
-VersionTab:CreateLabel("- Auto-say quiz list in chat")
-VersionTab:CreateLabel("- Leaderboard tracking")
-VersionTab:CreateLabel("- Wrong answer penalty system")
-VersionTab:CreateLabel("- Customizable timing settings")
-VersionTab:CreateLabel("- Custom quiz creation")
-VersionTab:CreateLabel("- Secret fly feature")
 
 -- =============================================
 -- TAB: Settings
@@ -1082,6 +1096,7 @@ SettingsTab:CreateSlider({
     Name = "Question Read Time (s)",
     Range = {2, 10},
     Increment = 1,
+    Suffix = "s",
     CurrentValue = QUESTION_READ_TIME,
     Flag = "QuestionTime",
     Callback = function(val) QUESTION_READ_TIME = val end
@@ -1091,6 +1106,7 @@ SettingsTab:CreateSlider({
     Name = "Answer Time (s)",
     Range = {5, 30},
     Increment = 1,
+    Suffix = "s",
     CurrentValue = ANSWER_TIME,
     Flag = "AnswerTime",
     Callback = function(val) ANSWER_TIME = val end
@@ -1100,6 +1116,7 @@ SettingsTab:CreateSlider({
     Name = "Warn When X Seconds Left",
     Range = {1, 5},
     Increment = 1,
+    Suffix = "s",
     CurrentValue = WARN_AT,
     Flag = "WarnAt",
     Callback = function(val) WARN_AT = val end
@@ -1122,9 +1139,162 @@ SettingsTab:CreateSection("Danger Zone")
 SettingsTab:CreateButton({
     Name = "Exit Rayfield",
     Callback = function()
+        stopFly()
         Rayfield:Destroy()
     end
 })
+
+-- =============================================
+-- TAB: Quiz Maker
+-- =============================================
+local QuizMakerTab = Window:CreateTab("Quiz Maker", 4483362458)
+QuizMakerTab:CreateSection("Create Custom Quiz")
+
+local quizNameInput = QuizMakerTab:CreateInput({
+    Name = "Quiz Name",
+    PlaceholderText = "Enter quiz name...",
+    RemoveTextAfterFocusLost = false,
+    CurrentValue = "",
+    Flag = "QuizName",
+})
+
+local questionInput = QuizMakerTab:CreateInput({
+    Name = "Question",
+    PlaceholderText = "Enter your question...",
+    RemoveTextAfterFocusLost = false,
+    CurrentValue = "",
+    Flag = "QuizQuestion",
+})
+
+local optionAInput = QuizMakerTab:CreateInput({
+    Name = "Option A",
+    PlaceholderText = "Enter option A...",
+    RemoveTextAfterFocusLost = false,
+    CurrentValue = "",
+    Flag = "QuizOptionA",
+})
+
+local optionBInput = QuizMakerTab:CreateInput({
+    Name = "Option B",
+    PlaceholderText = "Enter option B...",
+    RemoveTextAfterFocusLost = false,
+    CurrentValue = "",
+    Flag = "QuizOptionB",
+})
+
+local optionCInput = QuizMakerTab:CreateInput({
+    Name = "Option C",
+    PlaceholderText = "Enter option C...",
+    RemoveTextAfterFocusLost = false,
+    CurrentValue = "",
+    Flag = "QuizOptionC",
+})
+
+local optionDInput = QuizMakerTab:CreateInput({
+    Name = "Option D",
+    PlaceholderText = "Enter option D...",
+    RemoveTextAfterFocusLost = false,
+    CurrentValue = "",
+    Flag = "QuizOptionD",
+})
+
+local correctAnswerDropdown = QuizMakerTab:CreateDropdown({
+    Name = "Correct Answer",
+    Options = {"A", "B", "C", "D"},
+    CurrentOption = {"A"},
+    MultipleOptions = false,
+    Flag = "CorrectAnswer",
+})
+
+QuizMakerTab:CreateButton({
+    Name = "Create Quiz",
+    Callback = function()
+        local quizName = quizNameInput.CurrentValue
+        local question = questionInput.CurrentValue
+        local optA = optionAInput.CurrentValue
+        local optB = optionBInput.CurrentValue
+        local optC = optionCInput.CurrentValue
+        local optD = optionDInput.CurrentValue
+        local correct = correctAnswerDropdown.CurrentOption[1]
+
+        if quizName == "" or question == "" or optA == "" or optB == "" or optC == "" or optD == "" then
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Please fill in all fields!",
+                Duration = 3,
+            })
+            return
+        end
+
+        local newQuiz = {
+            name = quizName,
+            questions = {
+                {
+                    question = question,
+                    answers = {
+                        "A) " .. optA,
+                        "B) " .. optB,
+                        "C) " .. optC,
+                        "D) " .. optD
+                    },
+                    correct = correct
+                }
+            }
+        }
+
+        table.insert(Quizzes, newQuiz)
+
+        QuizTab:CreateButton({
+            Name = newQuiz.name,
+            Callback = function()
+                if isRunning then
+                    Rayfield:Notify({ Title = "Already Running!", Content = "Wait for the current quiz to finish.", Duration = 3 })
+                    return
+                end
+                Rayfield:Notify({ Title = "Quiz Starting!", Content = newQuiz.name .. " is starting...", Duration = 3 })
+                runQuiz(newQuiz, LeaderboardTab)
+            end
+        })
+
+        Rayfield:Notify({
+            Title = "Quiz Created!",
+            Content = "\"" .. quizName .. "\" has been added to the quiz list!",
+            Duration = 3,
+        })
+
+        quizNameInput:Set("")
+        questionInput:Set("")
+        optionAInput:Set("")
+        optionBInput:Set("")
+        optionCInput:Set("")
+        optionDInput:Set("")
+        correctAnswerDropdown:Set({"A"})
+
+        local updatedListText = "Quiz List\n"
+        for _, quiz in ipairs(Quizzes) do
+            updatedListText = updatedListText .. "(" .. quiz.name .. ")\n"
+        end
+        updatedListText = updatedListText .. "1/" .. #Quizzes
+        quizListLabel:Set(updatedListText)
+    end
+})
+
+-- =============================================
+-- TAB: Version
+-- =============================================
+local VersionTab = Window:CreateTab("Version", 4483362458)
+VersionTab:CreateSection("About")
+VersionTab:CreateLabel("Quiz System v1.1")
+VersionTab:CreateLabel("Created for Roblox")
+VersionTab:CreateLabel("")
+VersionTab:CreateLabel("Features:")
+VersionTab:CreateLabel("- Multiple quizzes available")
+VersionTab:CreateLabel("- Auto-say quiz list in chat")
+VersionTab:CreateLabel("- Leaderboard tracking")
+VersionTab:CreateLabel("- Wrong answer penalty system")
+VersionTab:CreateLabel("- Customizable timing settings")
+VersionTab:CreateLabel("- Custom quiz creation")
+VersionTab:CreateLabel("- Secret fly feature")
 
 -- =============================================
 -- INIT
