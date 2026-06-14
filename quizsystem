@@ -341,26 +341,12 @@ local function hookChatFilter()
     local function connectChannel(channel)
         if channel then
             channel.MessageReceived:Connect(function(message)
-                -- Comprehensive check for filtered messages
-                local currentTime = tick()
-                
-                -- Check if this message matches any recently sent message
-                for sentText, sentData in pairs(pendingMessages) do
-                    if (currentTime - sentData.time) < 5 then
-                        -- Multiple detection methods for robustness
-                        local hasTags = message.Text:find("###") ~= nil
-                        local textMatches = message.Text:gsub("###", ""):gsub("%s+", " "):lower() == sentText:gsub("%s+", " "):lower()
-                        local partialMatch = message.Text:find(sentText:sub(1, 10)) or sentText:find(message.Text:sub(1, 10))
-                        
-                        -- If message has tags AND is related to what we sent, mark as tagged
-                        if hasTags then
-                            wasLastMessageTagged = true
-                            pendingMessages[sentText] = nil
-                            break
-                        end
-                    else
-                        -- Clean up old entries
-                        pendingMessages[sentText] = nil
+                -- Simple check: if message has ### tags, mark it as filtered
+                if message.Text:find("###") then
+                    wasLastMessageTagged = true
+                    -- Clear pending messages
+                    for k in pairs(pendingMessages) do
+                        pendingMessages[k] = nil
                     end
                 end
             end)
@@ -380,29 +366,6 @@ local function hookChatFilter()
                     end
                 end)
             end
-        end
-    end)
-    
-    -- Additional backup: monitor MessageReceived directly on TextChatService
-    task.spawn(function()
-        local success, result = pcall(function()
-            return TextChatService:GetEnabled()
-        end)
-        if success and result then
-            TextChatService.MessageReceived:Connect(function(message)
-                local currentTime = tick()
-                for sentText, sentData in pairs(pendingMessages) do
-                    if (currentTime - sentData.time) < 5 then
-                        if message.Text:find("###") then
-                            wasLastMessageTagged = true
-                            pendingMessages[sentText] = nil
-                            break
-                        end
-                    else
-                        pendingMessages[sentText] = nil
-                    end
-                end
-            end)
         end
     end)
 end
@@ -429,26 +392,8 @@ local function sendWithRetry(text, type)
         task.wait(2.5) 
         if isStopped then return false end
         
-        -- Multiple checks for robustness
-        local tagged = wasLastMessageTagged or isTagged(text)
-        
-        -- Additional check: scan recent chat history for tags
-        if not tagged then
-            local channels = TextChatService:FindFirstChild("TextChannels")
-            if channels then
-                local general = channels:FindFirstChild("RBXGeneral")
-                if general then
-                    -- Check if our message appears with tags
-                    for _, msg in ipairs(general:GetMessages()) do
-                        if msg.Text:find("###") and msg.Text:find(text:sub(1, 20)) then
-                            tagged = true
-                            wasLastMessageTagged = true
-                            break
-                        end
-                    end
-                end
-            end
-        end
+        -- Simple check: was the message tagged?
+        local tagged = wasLastMessageTagged
         
         if tagged then
             tagCount = tagCount + 1
@@ -661,56 +606,22 @@ local function handleAnswer(msg, playerName, displayName)
 end
 
 local function hookChat()
-    -- Connect to LocalPlayer's chat (for bot/self-testing)
-    if Players.LocalPlayer and Players.LocalPlayer.Character then
-        Players.LocalPlayer.Chatted:Connect(function(msg)
-            handleAnswer(msg, Players.LocalPlayer.Name, Players.LocalPlayer.DisplayName)
-        end)
-    end
-
-    -- Connect to all existing players
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= Players.LocalPlayer then
-            local pl = p
-            pl.Chatted:Connect(function(msg)
-                handleAnswer(msg, pl.Name, pl.DisplayName)
-            end)
-        end
-    end
-
-    -- Connect to future players
-    Players.PlayerAdded:Connect(function(p)
-        p.Chatted:Connect(function(msg)
-            handleAnswer(msg, p.Name, p.DisplayName)
-        end)
-    end)
-    
-    -- Also use TextChatService for better compatibility with new Roblox chat system
+    -- Use TextChatService for all chat monitoring (works with new Roblox chat)
     task.spawn(function()
-        local success, result = pcall(function()
-            return TextChatService.TextChannels
-        end)
-        
-        if success and result then
-            local channels = TextChatService:WaitForChild("TextChannels", 5)
-            if channels then
-                local general = channels:FindFirstChild("RBXGeneral")
-                if general then
-                    general.MessageReceived:Connect(function(message)
-                        -- Skip messages from the bot itself to avoid processing our own quiz messages
-                        if message.User.Id == Players.LocalPlayer.UserId then
-                            return
-                        end
-                        
-                        local playerName = message.User.DisplayName
-                        local player = Players:GetPlayerFromCharacter(message.User.Id)
-                        if player then
-                            playerName = player.Name
-                        end
-                        
-                        handleAnswer(message.Text, playerName, message.User.DisplayName)
-                    end)
-                end
+        local channels = TextChatService:WaitForChild("TextChannels", 5)
+        if channels then
+            local general = channels:FindFirstChild("RBXGeneral")
+            if general then
+                general.MessageReceived:Connect(function(message)
+                    -- Get player name
+                    local playerName = message.User.DisplayName
+                    local player = Players:GetPlayerFromUserId(message.User.Id)
+                    if player then
+                        playerName = player.Name
+                    end
+                    
+                    handleAnswer(message.Text, playerName, message.User.DisplayName)
+                end)
             end
         end
     end)
