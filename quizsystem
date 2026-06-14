@@ -104,6 +104,106 @@ local Quizzes = {
             { question = "What is the hardest natural substance on Earth?",          answers = { "A) Gold", "B) Iron", "C) Diamond", "D) Platinum" }, correct = "C" },
         }
     },
+    {
+        name = "Space Quiz",
+        questions = {
+            { question = "What is the closest star to Earth?",                       answers = { "A) Proxima Centauri", "B) The Sun", "C) Sirius", "D) Betelgeuse" }, correct = "B" },
+            { question = "How many moons does Mars have?",                           answers = { "A) 0", "B) 1", "C) 2", "D) 3" }, correct = "C" },
+            { question = "What is the hottest planet in our solar system?",          answers = { "A) Mercury", "B) Venus", "C) Mars", "D) Jupiter" }, correct = "B" },
+            { question = "What galaxy is Earth located in?",                         answers = { "A) Andromeda", "B) Milky Way", "C) Triangulum", "D) Whirlpool" }, correct = "B" },
+            { question = "What is the name of NASA's most famous space telescope?",  answers = { "A) James Webb", "B) Hubble", "C) Kepler", "D) Spitzer" }, correct = "B" },
+        }
+    },
+    {
+        name = "Geography Quiz",
+        questions = {
+            { question = "What is the longest river in the world?",                  answers = { "A) Amazon", "B) Nile", "C) Yangtze", "D) Mississippi" }, correct = "B" },
+            { question = "Which country has the largest population?",                answers = { "A) India", "B) USA", "C) China", "D) Indonesia" }, correct = "A" },
+            { question = "What is the smallest country in the world?",               answers = { "A) Monaco", "B) Vatican City", "C) San Marino", "D) Liechtenstein" }, correct = "B" },
+            { question = "Which desert is the largest in the world?",                answers = { "A) Sahara", "B) Arabian", "C) Gobi", "D) Antarctic" }, correct = "D" },
+            { question = "Mount Everest is located in which mountain range?",        answers = { "A) Alps", "B) Andes", "C) Himalayas", "D) Rockies" }, correct = "C" },
+        }
+    },
+    {
+        name = "Science Quiz",
+        questions = {
+            { question = "What is the atomic number of Carbon?",                     answers = { "A) 4", "B) 6", "C) 8", "D) 12" }, correct = "B" },
+            { question = "What force keeps planets in orbit around the Sun?",        answers = { "A) Magnetism", "B) Gravity", "C) Friction", "D) Inertia" }, correct = "B" },
+            { question = "What is the powerhouse of the cell?",                      answers = { "A) Nucleus", "B) Ribosome", "C) Mitochondria", "D) Cytoplasm" }, correct = "C" },
+            { question = "What gas do plants absorb from the atmosphere?",           answers = { "A) Oxygen", "B) Nitrogen", "C) Carbon Dioxide", "D) Hydrogen" }, correct = "C" },
+            { question = "What is the speed of light approximately?",                answers = { "A) 300,000 km/s", "B) 150,000 km/s", "C) 1,000,000 km/s", "D) 50,000 km/s" }, correct = "A" },
+        }
+    },
+    {
+        name = "History Quiz",
+        questions = {
+            { question = "Who was the first President of the United States?",        answers = { "A) Thomas Jefferson", "B) George Washington", "C) Abraham Lincoln", "D) John Adams" }, correct = "B" },
+            { question = "In what year did the Titanic sink?",                       answers = { "A) 1910", "B) 1912", "C) 1914", "D) 1916" }, correct = "B" },
+            { question = "Who painted the Mona Lisa?",                               answers = { "A) Michelangelo", "B) Raphael", "C) Leonardo da Vinci", "D) Donatello" }, correct = "C" },
+            { question = "What ancient civilization built the pyramids?",            answers = { "A) Romans", "B) Greeks", "C) Egyptians", "D) Mayans" }, correct = "C" },
+            { question = "Who discovered America in 1492?",                          answers = { "A) Vasco da Gama", "B) Christopher Columbus", "C) Ferdinand Magellan", "D) Amerigo Vespucci" }, correct = "B" },
+        }
+    },
+    {
+        name = "Sports Quiz",
+        questions = {
+            { question = "How many players are on a soccer team on the field?",      answers = { "A) 9", "B) 10", "C) 11", "D) 12" }, correct = "C" },
+            { question = "In which sport would you perform a slam dunk?",            answers = { "A) Volleyball", "B) Basketball", "C) Tennis", "D) Baseball" }, correct = "B" },
+            { question = "How long is a marathon?",                                  answers = { "A) 26.2 miles", "B) 20 miles", "C) 30 miles", "D) 13.1 miles" }, correct = "A" },
+            { question = "What country won the first FIFA World Cup?",               answers = { "A) Brazil", "B) Argentina", "C) Uruguay", "D) Italy" }, correct = "C" },
+            { question = "Which sport uses a shuttlecock?",                          answers = { "A) Tennis", "B) Squash", "C) Badminton", "D) Ping Pong" }, correct = "C" },
+        }
+    },
+    {
+        name = "Movies Quiz",
+        questions = {
+            { question = "Which movie won the first Academy Award for Best Picture?", answers = { "A) Wings", "B) Sunrise", "C) The Jazz Singer", "D) Metropolis" }, correct = "A" },
+            { question = "Who directed Jurassic Park?",                              answers = { "A) George Lucas", "B) Steven Spielberg", "C) James Cameron", "D) Ridley Scott" }, correct = "B" },
+            { question = "What is the highest-grossing film of all time?",           answers = { "A) Avengers: Endgame", "B) Avatar", "C) Titanic", "D) Star Wars" }, correct = "B" },
+            { question = "Who played Iron Man in the MCU?",                          answers = { "A) Chris Evans", "B) Robert Downey Jr.", "C) Chris Hemsworth", "D) Mark Ruffalo" }, correct = "B" },
+            { question = "What year was the first Star Wars movie released?",        answers = { "A) 1975", "B) 1977", "C) 1979", "D) 1981" }, correct = "B" },
+        }
+    },
+    {
+        name = "Music Quiz",
+        questions = {
+            { question = "Who is known as the King of Pop?",                         answers = { "A) Elvis Presley", "B) Michael Jackson", "C) Prince", "D) Freddie Mercury" }, correct = "B" },
+            { question = "Which band wrote 'Bohemian Rhapsody'?",                    answers = { "A) The Beatles", "B) Led Zeppelin", "C) Queen", "D) Pink Floyd" }, correct = "C" },
+            { question = "How many strings does a standard guitar have?",            answers = { "A) 4", "B) 5", "C) 6", "D) 7" }, correct = "C" },
+            { question = "Who sang 'Rolling in the Deep'?",                          answers = { "A) Taylor Swift", "B) Beyoncé", "C) Adele", "D) Rihanna" }, correct = "C" },
+            { question = "What instrument does Yo-Yo Ma play?",                      answers = { "A) Violin", "B) Piano", "C) Cello", "D) Flute" }, correct = "C" },
+        }
+    },
+    {
+        name = "Technology Quiz",
+        questions = {
+            { question = "Who founded Microsoft?",                                   answers = { "A) Steve Jobs", "B) Bill Gates", "C) Mark Zuckerberg", "D) Jeff Bezos" }, correct = "B" },
+            { question = "What does CPU stand for?",                                 answers = { "A) Central Processing Unit", "B) Computer Personal Unit", "C) Central Program Utility", "D) Core Processing Unit" }, correct = "A" },
+            { question = "In what year was the iPhone first released?",              answers = { "A) 2005", "B) 2007", "C) 2009", "D) 2011" }, correct = "B" },
+            { question = "What does WWW stand for?",                                 answers = { "A) World Wide Web", "B) World Web Wide", "C) Wide World Web", "D) Web World Wide" }, correct = "A" },
+            { question = "Which company makes the Galaxy smartphone series?",        answers = { "A) Apple", "B) Google", "C) Samsung", "D) Huawei" }, correct = "C" },
+        }
+    },
+    {
+        name = "Animal Quiz",
+        questions = {
+            { question = "What is the largest mammal in the world?",                 answers = { "A) African Elephant", "B) Blue Whale", "C) Giraffe", "D) Hippopotamus" }, correct = "B" },
+            { question = "How many hearts does an octopus have?",                    answers = { "A) 1", "B) 2", "C) 3", "D) 4" }, correct = "C" },
+            { question = "What is the only mammal capable of true flight?",          answers = { "A) Flying Squirrel", "B) Bat", "C) Sugar Glider", "D) Colugo" }, correct = "B" },
+            { question = "Which animal is known as the 'Ship of the Desert'?",       answers = { "A) Horse", "B) Camel", "C) Elephant", "D) Donkey" }, correct = "B" },
+            { question = "What is a group of lions called?",                         answers = { "A) Herd", "B) Pack", "C) Pride", "D) Flock" }, correct = "C" },
+        }
+    },
+    {
+        name = "Food Quiz",
+        questions = {
+            { question = "What is the main ingredient in guacamole?",                answers = { "A) Tomato", "B) Avocado", "C) Onion", "D) Pepper" }, correct = "B" },
+            { question = "Which country invented pizza?",                            answers = { "A) France", "B) Greece", "C) Italy", "D) Spain" }, correct = "C" },
+            { question = "What type of pastry is a croissant?",                      answers = { "A) Filo", "B) Puff", "C) Choux", "D) Shortcrust" }, correct = "B" },
+            { question = "Sushi originated in which country?",                       answers = { "A) China", "B) Korea", "C) Japan", "D) Thailand" }, correct = "C" },
+            { question = "What is the main ingredient in hummus?",                   answers = { "A) Lentils", "B) Chickpeas", "C) Black Beans", "D) Peas" }, correct = "B" },
+        }
+    },
 }
 
 -- =============================================
@@ -587,6 +687,49 @@ end
 local LeaderboardTab = Window:CreateTab("Leaderboard", 4483362458)
 LeaderboardTab:CreateSection("Results")
 LeaderboardTab:CreateLabel("Leaderboard appears here after a quiz ends.")
+
+-- =============================================
+-- TAB: Quiz List
+-- =============================================
+local QuizListTab = Window:CreateTab("Quiz List", 4483362458)
+QuizListTab:CreateSection("All Available Quizzes")
+
+-- Add a label showing all quiz names
+local quizListText = "Quiz List\n"
+for i, quiz in ipairs(Quizzes) do
+    quizListText = quizListText .. "(" .. quiz.name .. ")\n"
+end
+quizListText = quizListText .. "1/" .. #Quizzes
+
+QuizListTab:CreateLabel(quizListText)
+
+QuizListTab:CreateSection("Actions")
+QuizListTab:CreateButton({
+    Name = "List Quiz to People",
+    Callback = function()
+        if isRunning then
+            Rayfield:Notify({ Title = "Quiz Running!", Content = "Wait for the current quiz to finish.", Duration = 3 })
+            return
+        end
+        Rayfield:Notify({
+            Title = "Listing Quizzes",
+            Content = "Announcing all quizzes in chat with 6 second pauses...",
+            Duration = 3,
+        })
+        task.spawn(function()
+            sayAsPlayer("Quiz List")
+            task.wait(6)
+            for i, quiz in ipairs(Quizzes) do
+                if isStopped then break end
+                sayAsPlayer("(" .. quiz.name .. ")")
+                task.wait(6)
+            end
+            if not isStopped then
+                sayAsPlayer("1/" .. #Quizzes)
+            end
+        end)
+    end
+})
 
 -- =============================================
 -- TAB: Rules
