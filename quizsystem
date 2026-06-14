@@ -1,0 +1,673 @@
+-- Quiz System LocalScript
+-- Place inside StarterPlayerScripts or run via console
+
+local Players = game:GetService("Players")
+local TextChatService = game:GetService("TextChatService")
+
+-- =============================================
+-- QUIZZES
+-- =============================================
+local Quizzes = {
+    {
+        name = "Test Quiz",
+        questions = {
+            { question = "What is the capital of France?",        answers = { "A) London", "B) Paris", "C) Rome", "D) Berlin" },     correct = "B" },
+            { question = "What is 2 + 2?",                        answers = { "A) 3", "B) 5", "C) 4", "D) 22" },                    correct = "C" },
+            { question = "What color is the sky?",                answers = { "A) Green", "B) Red", "C) Purple", "D) Blue" },        correct = "D" },
+        }
+    },
+    {
+        name = "Banana Quiz",
+        questions = {
+            { question = "What color is a ripe banana?",          answers = { "A) Red", "B) Blue", "C) Yellow", "D) Green" },        correct = "C" },
+            { question = "Bananas grow on which type of plant?",   answers = { "A) Tree", "B) Vine", "C) Shrub", "D) Herb" },         correct = "D" },
+            { question = "Which country produces the most bananas?", answers = { "A) Brazil", "B) India", "C) Philippines", "D) Ecuador" }, correct = "B" },
+            { question = "What is the edible inside of a banana called?", answers = { "A) Pulp", "B) Core", "C) Flesh", "D) Seed" }, correct = "C" },
+        }
+    },
+    {
+        name = "Water Quiz",
+        questions = {
+            { question = "What is the chemical formula for water?",                answers = { "A) HO2", "B) H2O", "C) H3O", "D) OH2" },         correct = "B" },
+            { question = "At what Celsius does water boil at sea level?",          answers = { "A) 90", "B) 110", "C) 85", "D) 100" },            correct = "D" },
+            { question = "What percent of Earth's surface is covered by water?",   answers = { "A) 51%", "B) 61%", "C) 71%", "D) 81%" },          correct = "C" },
+            { question = "Which state of water is the least dense?",               answers = { "A) Liquid", "B) Solid", "C) Gas", "D) Plasma" },   correct = "B" },
+        }
+    },
+    {
+        name = "Existence of Life Quiz",
+        questions = {
+            { question = "How old is life on Earth estimated to be?",              answers = { "A) 1 billion yrs", "B) 2 billion yrs", "C) 3.5 billion yrs", "D) 5 billion yrs" }, correct = "C" },
+            { question = "What is the smallest unit of life?",                     answers = { "A) Atom", "B) Cell", "C) Molecule", "D) Organ" },   correct = "B" },
+            { question = "Which molecule carries genetic info in living things?",   answers = { "A) ATP", "B) RNA", "C) DNA", "D) ADP" },            correct = "C" },
+            { question = "What are life forms that survive extreme conditions?",    answers = { "A) Megaforms", "B) Extremophiles", "C) Parasites", "D) Archeons" }, correct = "B" },
+            { question = "Which planet is studied most for signs of past life?",   answers = { "A) Venus", "B) Jupiter", "C) Mars", "D) Europa" },   correct = "C" },
+        }
+    },
+    {
+        name = "Block Tales Quiz",
+        questions = {
+            { question = "What is the main goal in Block Tales?",                    answers = { "A) Build a castle", "B) Retrieve 7 SFOTH swords to save Builderman", "C) Defeat 100 enemies", "D) Find treasure" }, correct = "B" },
+            { question = "Which sword do you obtain in Chapter 1?",                  answers = { "A) Venomshank", "B) Firebrand", "C) Ice Dagger", "D) Ghostwalker" }, correct = "C" },
+            { question = "Who is the final boss of Chapter 1?",                      answers = { "A) Supreme Ant", "B) Cruel King", "C) Noobador", "D) Sentient Statue" }, correct = "B" },
+            { question = "What does HP stand for in Block Tales?",                   answers = { "A) Health Power", "B) Heart Points", "C) Hit Points", "D) Healing Power" }, correct = "B" },
+            { question = "Which boss is found in the Prologue?",                     answers = { "A) Red & Blue Noobs", "B) Griefer", "C) Turkey", "D) Finn McCool" }, correct = "A" },
+            { question = "What sword is obtained in Chapter 2?",                     answers = { "A) Ice Dagger", "B) Windforce", "C) Venomshank", "D) Firebrand" }, correct = "C" },
+            { question = "Who tasks you with retrieving the swords?",                answers = { "A) Builderman", "B) Shedletsky", "C) Tutorial Terry", "D) Matt Dusek" }, correct = "B" },
+            { question = "What is the final boss of Chapter 2?",                     answers = { "A) Komodo Dragon", "B) Bigfoot", "C) Bubonic Plant", "D) Supreme Mosquito" }, correct = "C" },
+            { question = "Which chapter takes place in a haunted manor?",            answers = { "A) Chapter 1", "B) Chapter 2", "C) Chapter 3", "D) Chapter 4" }, correct = "C" },
+            { question = "What sword do you get in Chapter 3?",                      answers = { "A) Ghostwalker", "B) Ice Dagger", "C) Firebrand", "D) Windforce" }, correct = "A" },
+            { question = "What does SP stand for?",                                  answers = { "A) Special Power", "B) Speed Points", "C) Special Points", "D) Skill Points" }, correct = "C" },
+            { question = "Who is the boss of the Ancient Tomb in Chapter 4?",        answers = { "A) The Ancients", "B) The Great Floccinaucinihilipilification", "C) Captain Trotter", "D) Temple Guardian" }, correct = "B" },
+            { question = "What sword is obtained in Chapter 4?",                     answers = { "A) Venomshank", "B) Ghostwalker", "C) Firebrand", "D) Ice Dagger" }, correct = "C" },
+            { question = "What is the name of the final boss in Chapter 5?",         answers = { "A) Reginald", "B) Frostmaw", "C) Arg'il", "D) The Trinity" }, correct = "C" },
+            { question = "Which sword is obtained in Chapter 5?",                    answers = { "A) Firebrand", "B) Windforce", "C) Ghostwalker", "D) Venomshank" }, correct = "B" },
+            { question = "What does BP stand for in the card system?",               answers = { "A) Battle Points", "B) Build Points", "C) Bonus Points", "D) Block Points" }, correct = "B" },
+            { question = "What is the name of the Dream World boss representing greed?", answers = { "A) Fear", "B) Hatred", "C) Solitude", "D) Greed" }, correct = "D" },
+            { question = "Which enemy type is found in Roblox HQ during the Prologue?", answers = { "A) Nooblet", "B) Zombie", "C) Bandit", "D) Pirate" }, correct = "A" },
+            { question = "What currency is used alongside BUX in Block Tales?",      answers = { "A) Gold", "B) TIX", "C) Coins", "D) Cash" }, correct = "B" },
+            { question = "Who is the pirate captain in Chapter 4?",                  answers = { "A) Calypso", "B) Captain Trotter", "C) Finn McCool", "D) The Ancients" }, correct = "B" },
+        }
+    },
+    {
+        name = "Animation vs Minecraft Quiz",
+        questions = {
+            { question = "When was Animation vs. Minecraft released?",               answers = { "A) 2014", "B) December 15, 2015", "C) 2016", "D) 2017" }, correct = "B" },
+            { question = "Who is the main antagonist in the original AvM?",          answers = { "A) Steve", "B) Herobrine", "C) Notch", "D) Ender Dragon" }, correct = "B" },
+            { question = "What does Red build to trap Blue?",                        answers = { "A) A cage", "B) A cobblestone wall", "C) TNT", "D) A pit" }, correct = "B" },
+            { question = "What weapon does The Second Coming craft first?",          answers = { "A) Sword", "B) Pickaxe", "C) Bow", "D) Axe" }, correct = "B" },
+            { question = "What structure does Green build in the beginning?",        answers = { "A) A house", "B) A windmill", "C) A tower", "D) A farm" }, correct = "B" },
+            { question = "What does Herobrine possess to create the MegaStick?",     answers = { "A) Red", "B) Blue", "C) Green", "D) Yellow" }, correct = "A" },
+            { question = "What material is the MegaStick made of?",                  answers = { "A) Wood", "B) Stone", "C) Cobblestone", "D) Obsidian" }, correct = "C" },
+            { question = "What dimension do they enter without a portal?",           answers = { "A) The End", "B) The Nether", "C) SkyBlock", "D) Aether" }, correct = "B" },
+            { question = "What item is used to recycle Minecraft?",                  answers = { "A) Trash Bin", "B) Recycle Bin", "C) Delete Button", "D) Destroy Command" }, correct = "B" },
+            { question = "Who is the orange stick figure in Season 3?",              answers = { "A) Purple", "B) King Orange", "C) Gold", "D) Orange" }, correct = "B" },
+            { question = "What episode features a building contest?",                answers = { "A) Episode 1", "B) Episode 2", "C) Episode 3", "D) Episode 4" }, correct = "B" },
+            { question = "What mob attacks in Episode 9?",                           answers = { "A) Zombies", "B) Skeletons", "C) Villagers", "D) Creepers" }, correct = "C" },
+            { question = "What is Episode 10 about?",                                answers = { "A) The Nether", "B) The End", "C) SkyBlock", "D) Villagers" }, correct = "B" },
+            { question = "Who is King Orange's deceased son?",                       answers = { "A) Purple", "B) Yellow", "C) Gold", "D) Red" }, correct = "C" },
+            { question = "What game do they play in Episode 36?",                    answers = { "A) SkyWars", "B) Bedwars", "C) PvP", "D) Build Battle" }, correct = "B" },
+            { question = "What season features Hardcore mode?",                      answers = { "A) Season 3", "B) Season 4", "C) Season 5", "D) Season 1" }, correct = "C" },
+            { question = "What creature stalks them in Season 5?",                   answers = { "A) The Warden", "B) The Creature", "C) Herobrine", "D) Ender Dragon" }, correct = "B" },
+            { question = "What dimension is featured in Episode 39?",                answers = { "A) The Nether", "B) The End", "C) The Aether", "D) Far Lands" }, correct = "C" },
+            { question = "Who are the enemies in Season 5?",                         answers = { "A) Mobs", "B) Armor Stands", "C) Players", "D) Villagers" }, correct = "B" },
+            { question = "What is the longest episode in the series?",               answers = { "A) The King", "B) The Warden", "C) Hardcore Manhunt", "D) The Far Lands" }, correct = "A" },
+        }
+    },
+}
+
+-- =============================================
+-- SAY AS PLAYER IN CHAT
+-- =============================================
+local function sayAsPlayer(text)
+    local ok = pcall(function()
+        local channels = TextChatService:FindFirstChild("TextChannels")
+        if channels then
+            local general = channels:FindFirstChild("RBXGeneral")
+            if general then
+                general:SendAsync(text)
+                return
+            end
+        end
+    end)
+    if not ok then
+        pcall(function()
+            game:GetService("ReplicatedStorage")
+                .DefaultChatSystemChatEvents
+                .SayMessageRequest:FireServer(text, "All")
+        end)
+    end
+end
+
+-- =============================================
+-- TAG DETECTION & RETRY SYSTEM
+-- =============================================
+local lastSentText = nil
+local lastSentTime = 0
+local wasLastMessageTagged = false
+
+local function hookChatFilter()
+    local function connectChannel(channel)
+        if channel then
+            channel.MessageReceived:Connect(function(message)
+                if lastSentText and (tick() - lastSentTime) < 3 then
+                    if message.Text:find("###") and not lastSentText:find("###") then
+                        wasLastMessageTagged = true
+                    end
+                    lastSentText = nil
+                end
+            end)
+        end
+    end
+
+    task.spawn(function()
+        local channels = TextChatService:WaitForChild("TextChannels", 5)
+        if channels then
+            local general = channels:FindFirstChild("RBXGeneral")
+            if general then
+                connectChannel(general)
+            else
+                channels.ChildAdded:Connect(function(child)
+                    if child.Name == "RBXGeneral" then
+                        connectChannel(child)
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+local function isTagged(str)
+    return str:find("###") ~= nil
+end
+
+local function sendWithRetry(text, type)
+    local tagCount = 0
+    local maxRetries = 3
+    
+    while tagCount < maxRetries do
+        if isStopped then return false end 
+        
+        wasLastMessageTagged = false
+        lastSentText = text
+        lastSentTime = tick()
+        
+        sayAsPlayer(text)
+        
+        task.wait(2) 
+        if isStopped then return false end
+        
+        local tagged = wasLastMessageTagged or isTagged(text)
+        
+        if tagged then
+            tagCount = tagCount + 1
+            if tagCount == 1 then
+                sayAsPlayer("[System] (Calm) The " .. type:lower() .. " was tagged. I will repeat it in 5 seconds.")
+                task.wait(5)
+            elseif tagCount == 2 then
+                sayAsPlayer("[System] (Worried) Uh oh, it got tagged again... I'm a tad bit worried. I will repeat it in 5 seconds.")
+                task.wait(5)
+            elseif tagCount == 3 then
+                sayAsPlayer("[System] (Giving up) The " .. type:lower() .. " keeps getting tagged. Skipping this " .. type:lower() .. ".")
+                task.wait(4) 
+                return false 
+            end
+        else
+            return true 
+        end
+        if isStopped then return false end
+    end
+    return false
+end
+
+-- =============================================
+-- STATE
+-- =============================================
+local isRunning            = false
+local isStopped            = false
+local skipLeaderboard      = false
+local currentCorrectLetter = nil
+local currentCorrectWord   = nil
+local correctCount         = 0
+local scores               = {}
+local wrongAnswers         = {} -- Tracks wrong answers per player
+local cooldowns            = {} -- Tracks cooldowns per player
+local disqualified         = {} -- Tracks disqualified players per question
+local statusLabel          = nil
+local questionLabel        = nil
+local timerLabel           = nil
+
+local QUESTION_READ_TIME = 4
+local ANSWER_TIME        = 10
+local WARN_AT            = 2
+local POINTS             = { 3, 2, 1 }
+
+-- =============================================
+-- RULES AUTO-SAY FUNCTION (Filter-Friendly)
+-- =============================================
+local function autoSayRules()
+    task.spawn(function()
+        local rules = {
+            "======================",
+            "QUIZ RULES",
+            "======================",
+            "1. Wait for the question and answers in chat.",
+            "2. Type the correct letter or the exact word.",
+            "3. The first 3 correct answers get points.",
+            "======================",
+            "SCORING",
+            "1st place gets 3 points",
+            "2nd place gets 2 points",
+            "3rd place gets 1 point",
+            "======================",
+            "WRONG ANSWERS",
+            "Wrong answer means 2 second wait before trying again.",
+            "Two wrong answers means you are out for that question.",
+            "======================",
+            "CHAT FILTER",
+            "If something gets tagged it retries 3 times then skips.",
+            "======================",
+            "Good luck and have fun",
+            "======================",
+        }
+        
+        for _, rule in ipairs(rules) do
+            if isStopped then break end
+            sayAsPlayer(rule)
+            task.wait(3) -- 3 second pause between each message
+        end
+    end)
+end
+
+-- =============================================
+-- LEADERBOARD
+-- =============================================
+local function showLeaderboard(leaderboardTab)
+    local sorted = {}
+    for name, pts in pairs(scores) do
+        if name:sub(1, 11) ~= "__answered_" then
+            table.insert(sorted, { name = name, points = pts })
+        end
+    end
+    table.sort(sorted, function(a, b) return a.points > b.points end)
+
+    sayAsPlayer("======================")
+    task.wait(2)
+    if isStopped then return end
+    sayAsPlayer("FINAL LEADERBOARD")
+    task.wait(2)
+
+    local medals = { "1st", "2nd", "3rd" }
+
+    if #sorted == 0 then
+        sayAsPlayer("Nobody scored any points!")
+    else
+        for rank, entry in ipairs(sorted) do
+            if isStopped then return end
+            local place = medals[rank] or "#" .. rank
+            local line = place .. " - " .. entry.name .. " - " .. entry.points .. " pts"
+            sayAsPlayer(line)
+            task.wait(5) 
+            pcall(function()
+                leaderboardTab:CreateLabel(line)
+            end)
+        end
+    end
+
+    task.wait(2)
+    if not isStopped then
+        sayAsPlayer("======================")
+    end
+end
+
+-- =============================================
+-- CHAT HOOK WITH WRONG ANSWER SYSTEM (BOT EXCLUDED)
+-- =============================================
+local function normalizeAnswer(msg)
+    return msg:lower():gsub("[^%w]", "")
+end
+
+local function handleAnswer(msg, playerName, displayName)
+    if not isRunning then return end
+    if currentCorrectLetter == nil then return end
+    if correctCount >= 3 then return end
+    if scores[playerName] == nil then scores[playerName] = 0 end
+    if scores["__answered_" .. playerName .. "_q"] then return end
+    
+    -- Check if player is disqualified
+    if disqualified[playerName] then return end
+    
+    -- Check if player is on cooldown
+    if cooldowns[playerName] and tick() < cooldowns[playerName] then return end
+
+    local cleaned = normalizeAnswer(msg)
+    
+    -- Check if the answer is correct
+    if cleaned == currentCorrectLetter or cleaned == currentCorrectWord then
+        correctCount += 1
+        local pts = POINTS[correctCount] or 0
+        scores[playerName] = scores[playerName] + pts
+        scores["__answered_" .. playerName .. "_q"] = true
+
+        local place = { "1st", "2nd", "3rd" }
+        sayAsPlayer("Correct! " .. displayName .. " got it " .. (place[correctCount] or "") .. "! (+" .. pts .. " pts)")
+
+        if statusLabel then
+            statusLabel:Set(displayName .. " answered " .. (place[correctCount] or "") .. " (+" .. pts .. " pts)")
+        end
+    else
+        -- EXCLUDE THE BOT (LOCAL PLAYER) FROM WRONG ANSWER PENALTIES
+        if playerName == Players.LocalPlayer.Name then
+            return -- Bot is the quiz master, don't penalize it
+        end
+        
+        -- Wrong answer handling for other players
+        if wrongAnswers[playerName] == nil then
+            wrongAnswers[playerName] = 0
+        end
+        
+        wrongAnswers[playerName] = wrongAnswers[playerName] + 1
+        
+        if wrongAnswers[playerName] == 1 then
+            -- First wrong answer - 2 second cooldown
+            sayAsPlayer(displayName .. " got it wrong! Wait 2 seconds to answer again.")
+            cooldowns[playerName] = tick() + 2
+        elseif wrongAnswers[playerName] >= 2 then
+            -- Second wrong answer - disqualified for this question
+            sayAsPlayer(displayName .. " got it wrong twice! You are out for this question.")
+            disqualified[playerName] = true
+        end
+    end
+end
+
+local function hookChat()
+    Players.LocalPlayer.Chatted:Connect(function(msg)
+        handleAnswer(msg, Players.LocalPlayer.Name, Players.LocalPlayer.DisplayName)
+    end)
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= Players.LocalPlayer then
+            local pl = p
+            pl.Chatted:Connect(function(msg)
+                handleAnswer(msg, pl.Name, pl.DisplayName)
+            end)
+        end
+    end
+
+    Players.PlayerAdded:Connect(function(p)
+        p.Chatted:Connect(function(msg)
+            handleAnswer(msg, p.Name, p.DisplayName)
+        end)
+    end)
+end
+
+-- =============================================
+-- QUIZ RUNNER
+-- =============================================
+local function runQuiz(quiz, leaderboardTab)
+    if isRunning then return end
+    isRunning = true
+    isStopped = false
+    scores = {}
+
+    task.spawn(function()
+        for i, q in ipairs(quiz.questions) do
+            if isStopped then break end
+            
+            currentCorrectLetter = q.correct:lower()
+            currentCorrectWord   = currentCorrectLetter 
+
+            local fullAnswerText = q.correct
+            
+            for _, ans in ipairs(q.answers) do
+                if ans:sub(1, 1):upper() == q.correct:upper() then
+                    fullAnswerText = ans
+                    local word = ans:match("%)%s*(.+)")
+                    if word then
+                        currentCorrectWord = normalizeAnswer(word)
+                    end
+                    break
+                end
+            end
+            
+            correctCount = 0
+            
+            -- Reset wrong answer tracking for new question
+            wrongAnswers = {}
+            cooldowns = {}
+            disqualified = {}
+
+            for k in pairs(scores) do
+                if k:sub(1, 11) == "__answered_" then
+                    scores[k] = nil
+                end
+            end
+
+            -- QUESTION PHASE
+            if isStopped then break end
+            sayAsPlayer("----------------------------")
+            task.wait(1) 
+            
+            local qText = "Q" .. i .. "/" .. #quiz.questions .. ": " .. q.question
+            local qSent = sendWithRetry(qText, "Question")
+            if isStopped then break end
+            if not qSent then
+                currentCorrectLetter = nil
+                currentCorrectWord   = nil
+                continue 
+            end
+            
+            if statusLabel then statusLabel:Set("Q" .. i .. ": " .. q.question) end
+            if questionLabel then questionLabel:Set("Reading question...") end
+
+            for t = QUESTION_READ_TIME, 1, -1 do
+                if isStopped then break end
+                if timerLabel then timerLabel:Set("Answers in: " .. t .. "s") end
+                task.wait(1)
+            end
+            if isStopped then break end
+
+            -- ANSWER PHASE
+            local aText = table.concat(q.answers, "   ")
+            local aSent = sendWithRetry(aText, "Answer")
+            if isStopped then break end
+            if not aSent then
+                currentCorrectLetter = nil
+                currentCorrectWord   = nil
+                continue 
+            end
+            
+            if questionLabel then questionLabel:Set("Waiting for answers...") end
+
+            local timeLeft = ANSWER_TIME
+            local warned   = false
+
+            while timeLeft > 0 do
+                if isStopped then break end
+                if correctCount >= 3 then break end
+
+                if timeLeft == WARN_AT and not warned then
+                    warned = true
+                    sayAsPlayer(WARN_AT .. " seconds left!")
+                end
+
+                if timerLabel then timerLabel:Set("Time left: " .. timeLeft .. "s") end
+                task.wait(1)
+                timeLeft -= 1
+            end
+            
+            if isStopped then break end
+
+            if correctCount == 0 then
+                sayAsPlayer("Nobody got it! Answer was: " .. fullAnswerText)
+                if statusLabel then statusLabel:Set("No one answered. Was: " .. fullAnswerText) end
+            end
+
+            currentCorrectLetter = nil
+            currentCorrectWord   = nil
+            task.wait(2)
+        end
+
+        -- QUIZ OVER
+        if isStopped then
+            isStopped = false
+            if statusLabel then statusLabel:Set("Status: Stopped") end
+            if questionLabel then questionLabel:Set("—") end
+            if timerLabel then timerLabel:Set("—") end
+            isRunning = false
+            return
+        end
+
+        sayAsPlayer("Quiz over! Calculating scores...")
+        task.wait(1)
+        
+        if skipLeaderboard then
+            skipLeaderboard = false
+            sayAsPlayer("[System] Leaderboard display skipped as requested.")
+            if statusLabel then statusLabel:Set("Done! Leaderboard skipped.") end
+        else
+            showLeaderboard(leaderboardTab)
+            if statusLabel then statusLabel:Set("Done! Check Leaderboard tab.") end
+        end
+
+        if questionLabel then questionLabel:Set("—") end
+        if timerLabel then timerLabel:Set("—") end
+        isRunning = false
+    end)
+end
+
+-- =============================================
+-- LOAD RAYFIELD
+-- =============================================
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Quiz System",
+    LoadingTitle = "Quiz System",
+    LoadingSubtitle = "with leaderboard",
+    Theme = "Default",
+    DisableRayfieldPrompts = true,
+    DisableBuildWarnings = true,
+    ConfigurationSaving = { Enabled = false },
+})
+
+-- =============================================
+-- TAB: Quizzes
+-- =============================================
+local QuizTab = Window:CreateTab("Quizzes", 4483362458)
+QuizTab:CreateSection("Status")
+
+statusLabel   = QuizTab:CreateLabel("Status: Ready")
+questionLabel = QuizTab:CreateLabel("Question: —")
+timerLabel    = QuizTab:CreateLabel("Timer: —")
+
+QuizTab:CreateSection("Controls")
+QuizTab:CreateButton({
+    Name = "Stop Current Quiz",
+    Callback = function()
+        if not isRunning then
+            Rayfield:Notify({ Title = "No Quiz Running", Content = "There is no active quiz to stop.", Duration = 3 })
+            return
+        end
+        isStopped = true
+        Rayfield:Notify({ Title = "Quiz Stopped", Content = "The current quiz is stopping...", Duration = 3 })
+        sayAsPlayer("[System] Quiz has been manually stopped by the host.")
+    end
+})
+
+QuizTab:CreateSection("Start a Quiz")
+for _, quiz in ipairs(Quizzes) do
+    local q = quiz
+    QuizTab:CreateButton({
+        Name = q.name,
+        Callback = function()
+            if isRunning then
+                Rayfield:Notify({ Title = "Already Running!", Content = "Wait for the current quiz to finish.", Duration = 3 })
+                return
+            end
+            Rayfield:Notify({ Title = "Quiz Starting!", Content = q.name .. " is starting...", Duration = 3 })
+            runQuiz(q, LeaderboardTab)
+        end
+    })
+end
+
+-- =============================================
+-- TAB: Leaderboard
+-- =============================================
+local LeaderboardTab = Window:CreateTab("Leaderboard", 4483362458)
+LeaderboardTab:CreateSection("Results")
+LeaderboardTab:CreateLabel("Leaderboard appears here after a quiz ends.")
+
+-- =============================================
+-- TAB: Rules
+-- =============================================
+local RulesTab = Window:CreateTab("Rules", 4483362458)
+RulesTab:CreateSection("How to Play")
+RulesTab:CreateLabel("Quiz Rules and Information")
+RulesTab:CreateLabel("Click the button below to have the rules automatically said in chat!")
+
+RulesTab:CreateButton({
+    Name = "Auto-Say Rules in Chat",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Auto-Saying Rules",
+            Content = "The rules will be announced in chat with pauses.",
+            Duration = 3,
+        })
+        autoSayRules()
+    end
+})
+
+RulesTab:CreateSection("Quick Reference")
+RulesTab:CreateLabel("Answer with Letter (A, B, C, D) or Word")
+RulesTab:CreateLabel("Top 3 correct answers get points")
+RulesTab:CreateLabel("1st = 3pts | 2nd = 2pts | 3rd = 1pt")
+RulesTab:CreateLabel("Wrong answer = 2 second wait")
+RulesTab:CreateLabel("Two wrong answers = disqualified for that question")
+RulesTab:CreateLabel("Tagged questions are retried up to 3 times")
+
+-- =============================================
+-- TAB: Settings
+-- =============================================
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
+SettingsTab:CreateSection("Timing")
+
+SettingsTab:CreateSlider({
+    Name = "Question Read Time (s)",
+    Range = {2, 10},
+    Increment = 1,
+    CurrentValue = QUESTION_READ_TIME,
+    Flag = "QuestionTime",
+    Callback = function(val) QUESTION_READ_TIME = val end
+})
+
+SettingsTab:CreateSlider({
+    Name = "Answer Time (s)",
+    Range = {5, 30},
+    Increment = 1,
+    CurrentValue = ANSWER_TIME,
+    Flag = "AnswerTime",
+    Callback = function(val) ANSWER_TIME = val end
+})
+
+SettingsTab:CreateSlider({
+    Name = "Warn When X Seconds Left",
+    Range = {1, 5},
+    Increment = 1,
+    CurrentValue = WARN_AT,
+    Flag = "WarnAt",
+    Callback = function(val) WARN_AT = val end
+})
+
+SettingsTab:CreateSection("Quiz Controls")
+SettingsTab:CreateButton({
+    Name = "Skip Leaderboard (Next Quiz)",
+    Callback = function()
+        skipLeaderboard = true
+        Rayfield:Notify({
+            Title = "Leaderboard Skipped",
+            Content = "The leaderboard will be skipped for the next quiz.",
+            Duration = 3,
+        })
+    end
+})
+
+SettingsTab:CreateSection("Danger Zone")
+SettingsTab:CreateButton({
+    Name = "Exit Rayfield",
+    Callback = function()
+        Rayfield:Destroy()
+    end
+})
+
+-- =============================================
+-- INIT
+-- =============================================
+hookChat()
+hookChatFilter() 
+
+Rayfield:Notify({
+    Title = "Quiz System Ready!",
+    Content = "Pick a quiz to start!",
+    Duration = 4,
+})
