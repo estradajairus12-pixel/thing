@@ -6,6 +6,11 @@ local TextChatService = game:GetService("TextChatService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+-- Bump this every time you change the script so you can tell what's running in-game.
+local VERSION = "1.1.2"
+local VERSION_DATE = "2026-06-14"
+local VERSION_NOTE = "Centralized version constant for commit tracking"
+
 -- =============================================
 -- QUIZZES
 -- =============================================
@@ -846,7 +851,7 @@ local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Window = Rayfield:CreateWindow({
     Name = "Quiz System",
     LoadingTitle = "Quiz System",
-    LoadingSubtitle = "with leaderboard",
+    LoadingSubtitle = "v" .. VERSION,
     Theme = "Default",
     DisableRayfieldPrompts = true,
     DisableBuildWarnings = true,
@@ -1354,11 +1359,14 @@ QuizMakerTab:CreateButton({
 -- TAB: Version
 -- =============================================
 local VersionTab = Window:CreateTab("Version", 4483362458)
+VersionTab:CreateSection("Build Info")
+VersionTab:CreateLabel("Quiz System v" .. VERSION)
+VersionTab:CreateLabel("Updated: " .. VERSION_DATE)
+VersionTab:CreateLabel("Latest: " .. VERSION_NOTE)
 VersionTab:CreateSection("About")
-VersionTab:CreateLabel("Quiz System v1.1.1")
 VersionTab:CreateLabel("Created for Roblox")
-VersionTab:CreateLabel("")
-VersionTab:CreateLabel("Features:")
+VersionTab:CreateLabel("If this version does not match your repo, re-run the script.")
+VersionTab:CreateSection("Features")
 VersionTab:CreateLabel("- Multiple quizzes available")
 VersionTab:CreateLabel("- Auto-say quiz list in chat")
 VersionTab:CreateLabel("- Leaderboard tracking")
@@ -1374,7 +1382,7 @@ hookChat()
 hookChatFilter() 
 
 Rayfield:Notify({
-    Title = "Quiz System Ready!",
+    Title = "Quiz System v" .. VERSION,
     Content = "Pick a quiz to start!",
     Duration = 4,
 })
