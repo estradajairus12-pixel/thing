@@ -609,14 +609,25 @@ end
 local hookedChatPlayers = {}
 local hookedTextChannels = {}
 local recentAnswerKeys = {}
+local ANSWER_DEDUP_WINDOW = 1
+
+local function trimMessage(msg)
+	return msg:match("^%s*(.-)%s*$") or msg
+end
 
 local function tryHandleAnswer(msg, playerName, displayName)
-	local key = playerName .. "\0" .. msg .. "\0" .. tostring(math.floor(tick() * 20))
-	if recentAnswerKeys[key] then return end
-	recentAnswerKeys[key] = true
-	task.delay(0.25, function()
-		recentAnswerKeys[key] = nil
-	end)
+	local key = playerName .. "\0" .. trimMessage(msg):lower()
+	local now = tick()
+	local lastSeen = recentAnswerKeys[key]
+	if lastSeen and (now - lastSeen) < ANSWER_DEDUP_WINDOW then
+		return
+	end
+	recentAnswerKeys[key] = now
+	for existingKey, seenAt in pairs(recentAnswerKeys) do
+		if (now - seenAt) >= ANSWER_DEDUP_WINDOW then
+			recentAnswerKeys[existingKey] = nil
+		end
+	end
 	handleAnswer(msg, playerName, displayName)
 end
 
@@ -655,36 +666,42 @@ local function hookPlayerChat(player)
 end
 
 local function hookChat()
-	for _, player in ipairs(Players:GetPlayers()) do
-		hookPlayerChat(player)
-	end
-	Players.PlayerAdded:Connect(hookPlayerChat)
-
-	task.spawn(function()
-		local function hookAllChannels(channels)
-			for _, channel in ipairs(channels:GetChildren()) do
-				if channel:IsA("TextChannel") then
-					hookTextChannel(channel)
-				end
+	local function hookAllChannels(channels)
+		for _, channel in ipairs(channels:GetChildren()) do
+			if channel:IsA("TextChannel") then
+				hookTextChannel(channel)
 			end
-			channels.ChildAdded:Connect(function(child)
-				if child:IsA("TextChannel") then
-					hookTextChannel(child)
-				end
-			end)
 		end
-
-		local channels = TextChatService:WaitForChild("TextChannels", 15)
-		if channels then
-			hookAllChannels(channels)
-		end
-
-		TextChatService.ChildAdded:Connect(function(child)
-			if child.Name == "TextChannels" then
-				hookAllChannels(child)
+		channels.ChildAdded:Connect(function(child)
+			if child:IsA("TextChannel") then
+				hookTextChannel(child)
 			end
 		end)
-	end)
+	end
+
+	local function hookLegacyChat()
+		for _, player in ipairs(Players:GetPlayers()) do
+			hookPlayerChat(player)
+		end
+		Players.PlayerAdded:Connect(hookPlayerChat)
+	end
+
+	if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		task.spawn(function()
+			local channels = TextChatService:WaitForChild("TextChannels", 15)
+			if channels then
+				hookAllChannels(channels)
+			end
+
+			TextChatService.ChildAdded:Connect(function(child)
+				if child.Name == "TextChannels" then
+					hookAllChannels(child)
+				end
+			end)
+		end)
+	else
+		hookLegacyChat()
+	end
 end
 
 -- =============================================
@@ -1150,12 +1167,45 @@ SettingsTab:CreateButton({
 local QuizMakerTab = Window:CreateTab("Quiz Maker", 4483362458)
 QuizMakerTab:CreateSection("Create Custom Quiz")
 
+local quizMakerDraft = {
+	quizName = "",
+	question = "",
+	optA = "",
+	optB = "",
+	optC = "",
+	optD = "",
+	correct = "A",
+}
+
+local function readQuizMakerInput(input, draftKey)
+	local draft = quizMakerDraft[draftKey]
+	if draft and draft ~= "" then
+		return draft
+	end
+	if input and input.CurrentValue ~= nil then
+		return input.CurrentValue
+	end
+	return ""
+end
+
+local function clearQuizMakerInput(input, draftKey)
+	quizMakerDraft[draftKey] = ""
+	if input then
+		pcall(function()
+			input:Set("")
+		end)
+	end
+end
+
 local quizNameInput = QuizMakerTab:CreateInput({
     Name = "Quiz Name",
     PlaceholderText = "Enter quiz name...",
     RemoveTextAfterFocusLost = false,
     CurrentValue = "",
     Flag = "QuizName",
+    Callback = function(text)
+        quizMakerDraft.quizName = text
+    end,
 })
 
 local questionInput = QuizMakerTab:CreateInput({
@@ -1164,6 +1214,9 @@ local questionInput = QuizMakerTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     CurrentValue = "",
     Flag = "QuizQuestion",
+    Callback = function(text)
+        quizMakerDraft.question = text
+    end,
 })
 
 local optionAInput = QuizMakerTab:CreateInput({
@@ -1172,6 +1225,9 @@ local optionAInput = QuizMakerTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     CurrentValue = "",
     Flag = "QuizOptionA",
+    Callback = function(text)
+        quizMakerDraft.optA = text
+    end,
 })
 
 local optionBInput = QuizMakerTab:CreateInput({
@@ -1180,6 +1236,9 @@ local optionBInput = QuizMakerTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     CurrentValue = "",
     Flag = "QuizOptionB",
+    Callback = function(text)
+        quizMakerDraft.optB = text
+    end,
 })
 
 local optionCInput = QuizMakerTab:CreateInput({
@@ -1188,6 +1247,9 @@ local optionCInput = QuizMakerTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     CurrentValue = "",
     Flag = "QuizOptionC",
+    Callback = function(text)
+        quizMakerDraft.optC = text
+    end,
 })
 
 local optionDInput = QuizMakerTab:CreateInput({
@@ -1196,6 +1258,9 @@ local optionDInput = QuizMakerTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     CurrentValue = "",
     Flag = "QuizOptionD",
+    Callback = function(text)
+        quizMakerDraft.optD = text
+    end,
 })
 
 local correctAnswerDropdown = QuizMakerTab:CreateDropdown({
@@ -1204,18 +1269,21 @@ local correctAnswerDropdown = QuizMakerTab:CreateDropdown({
     CurrentOption = {"A"},
     MultipleOptions = false,
     Flag = "CorrectAnswer",
+    Callback = function(option)
+        quizMakerDraft.correct = option[1]
+    end,
 })
 
 QuizMakerTab:CreateButton({
     Name = "Create Quiz",
     Callback = function()
-        local quizName = quizNameInput.CurrentValue
-        local question = questionInput.CurrentValue
-        local optA = optionAInput.CurrentValue
-        local optB = optionBInput.CurrentValue
-        local optC = optionCInput.CurrentValue
-        local optD = optionDInput.CurrentValue
-        local correct = correctAnswerDropdown.CurrentOption[1]
+        local quizName = readQuizMakerInput(quizNameInput, "quizName")
+        local question = readQuizMakerInput(questionInput, "question")
+        local optA = readQuizMakerInput(optionAInput, "optA")
+        local optB = readQuizMakerInput(optionBInput, "optB")
+        local optC = readQuizMakerInput(optionCInput, "optC")
+        local optD = readQuizMakerInput(optionDInput, "optD")
+        local correct = quizMakerDraft.correct ~= "" and quizMakerDraft.correct or correctAnswerDropdown.CurrentOption[1]
 
         if quizName == "" or question == "" or optA == "" or optB == "" or optC == "" or optD == "" then
             Rayfield:Notify({
@@ -1262,13 +1330,16 @@ QuizMakerTab:CreateButton({
             Duration = 3,
         })
 
-        quizNameInput:Set("")
-        questionInput:Set("")
-        optionAInput:Set("")
-        optionBInput:Set("")
-        optionCInput:Set("")
-        optionDInput:Set("")
-        correctAnswerDropdown:Set({"A"})
+        clearQuizMakerInput(quizNameInput, "quizName")
+        clearQuizMakerInput(questionInput, "question")
+        clearQuizMakerInput(optionAInput, "optA")
+        clearQuizMakerInput(optionBInput, "optB")
+        clearQuizMakerInput(optionCInput, "optC")
+        clearQuizMakerInput(optionDInput, "optD")
+        quizMakerDraft.correct = "A"
+        pcall(function()
+            correctAnswerDropdown:Set({"A"})
+        end)
 
         local updatedListText = "Quiz List\n"
         for _, quiz in ipairs(Quizzes) do
@@ -1284,7 +1355,7 @@ QuizMakerTab:CreateButton({
 -- =============================================
 local VersionTab = Window:CreateTab("Version", 4483362458)
 VersionTab:CreateSection("About")
-VersionTab:CreateLabel("Quiz System v1.1")
+VersionTab:CreateLabel("Quiz System v1.1.1")
 VersionTab:CreateLabel("Created for Roblox")
 VersionTab:CreateLabel("")
 VersionTab:CreateLabel("Features:")
