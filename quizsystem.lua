@@ -380,37 +380,34 @@ end
 
 local function sendWithRetry(text, type)
     local tagCount = 0
-    local maxRetries = 3
-    
+    local maxRetries = 2
+
     while tagCount < maxRetries do
-        if isStopped then return false end 
-        
+        if isStopped then return false end
+
         wasLastMessageTagged = false
         lastSentText = text
         lastSentTime = tick()
-        
+
         sayAsPlayer(text)
-        
-        task.wait(2) 
+
+        task.wait(3)
         if isStopped then return false end
-        
+
         local tagged = wasLastMessageTagged or isTagged(text)
-        
+
         if tagged then
             tagCount = tagCount + 1
             if tagCount == 1 then
-                sayAsPlayer("[System] (Calm) The " .. type:lower() .. " was tagged. I will repeat it in 5 seconds.")
-                task.wait(5)
-            elseif tagCount == 2 then
-                sayAsPlayer("[System] (Worried) Uh oh, it got tagged again... I'm a tad bit worried. I will repeat it in 5 seconds.")
-                task.wait(5)
-            elseif tagCount == 3 then
-                sayAsPlayer("[System] (Giving up) The " .. type:lower() .. " keeps getting tagged. Skipping this " .. type:lower() .. ".")
-                task.wait(4) 
-                return false 
+                sayAsPlayer("[System] The " .. type:lower() .. " was filtered. Repeating...")
+                task.wait(2)
+            elseif tagCount >= 2 then
+                sayAsPlayer("[System] Message still filtered. Skipping this " .. type:lower() .. ".")
+                task.wait(2)
+                return false
             end
         else
-            return true 
+            return true
         end
         if isStopped then return false end
     end
@@ -429,6 +426,8 @@ local correctCount         = 0
 local scores               = {}
 local wrongAnswers         = {} -- Tracks wrong answers per player
 local cooldowns            = {} -- Tracks cooldowns per player
+local lastWrongMessageTime = 0  -- Global cooldown for wrong answer messages
+local WRONG_MSG_COOLDOWN   = 0.5 -- Minimum time between wrong answer notifications
 local disqualified         = {} -- Tracks disqualified players per question
 local statusLabel          = nil
 local questionLabel        = nil
@@ -599,13 +598,22 @@ local function handleAnswer(msg, playerName, displayName)
 		
 		wrongAnswers[playerName] = wrongAnswers[playerName] + 1
 		
+		local now = tick()
+		local canSendMsg = (now - lastWrongMessageTime) >= WRONG_MSG_COOLDOWN
+		
 		if wrongAnswers[playerName] == 1 then
 			-- First wrong answer - 2 second cooldown
-			sayAsPlayer(displayName .. " got it wrong! Wait 2 seconds to answer again.")
+			if canSendMsg then
+				sayAsPlayer(displayName .. " got it wrong! Wait 2 seconds to answer again.")
+				lastWrongMessageTime = now
+			end
 			cooldowns[playerName] = tick() + 2
 		elseif wrongAnswers[playerName] >= 2 then
 			-- Second wrong answer - disqualified for this question
-			sayAsPlayer(displayName .. " got it wrong twice! You are out for this question.")
+			if canSendMsg then
+				sayAsPlayer(displayName .. " got it wrong twice! You are out for this question.")
+				lastWrongMessageTime = now
+			end
 			disqualified[playerName] = true
 		end
 	end
@@ -744,6 +752,7 @@ local function runQuiz(quiz, leaderboardTab)
             wrongAnswers = {}
             cooldowns = {}
             disqualified = {}
+            lastWrongMessageTime = 0
 
             for k in pairs(scores) do
                 if k:sub(1, 11) == "__answered_" then
