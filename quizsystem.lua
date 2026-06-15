@@ -7,9 +7,9 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 -- Bump this every time you change the script so you can tell what's running in-game.
-local VERSION = "1.1.4"
+local VERSION = "2.1"
 local VERSION_DATE = "2026-06-14"
-local VERSION_NOTE = "Reload fix - copy full script from quizsystem.lua"
+local VERSION_NOTE = "Custom Quiz System added - create your own quizzes!"
 
 -- =============================================
 -- QUIZZES
