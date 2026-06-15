@@ -1186,7 +1186,7 @@ local tempAnswerD = nil
 local tempCorrectAnswer = nil
 
 CustomQuizTab:CreateSection("Create New Quiz")
-CustomQuizTab:CreateTextbox({
+CustomQuizTab:CreateInput({
     Name = "Quiz Name",
     Placeholder = "Enter quiz name here...",
     Callback = function(value)
@@ -1208,7 +1208,7 @@ CustomQuizTab:CreateButton({
 })
 
 CustomQuizTab:CreateSection("Add Question")
-CustomQuizTab:CreateTextbox({
+CustomQuizTab:CreateInput({
     Name = "Question Text",
     Placeholder = "Enter your question...",
     Callback = function(value)
@@ -1216,7 +1216,7 @@ CustomQuizTab:CreateTextbox({
     end
 })
 
-CustomQuizTab:CreateTextbox({
+CustomQuizTab:CreateInput({
     Name = "Answer A",
     Placeholder = "Option A",
     Callback = function(value)
@@ -1224,7 +1224,7 @@ CustomQuizTab:CreateTextbox({
     end
 })
 
-CustomQuizTab:CreateTextbox({
+CustomQuizTab:CreateInput({
     Name = "Answer B",
     Placeholder = "Option B",
     Callback = function(value)
@@ -1232,7 +1232,7 @@ CustomQuizTab:CreateTextbox({
     end
 })
 
-CustomQuizTab:CreateTextbox({
+CustomQuizTab:CreateInput({
     Name = "Answer C",
     Placeholder = "Option C",
     Callback = function(value)
@@ -1240,7 +1240,7 @@ CustomQuizTab:CreateTextbox({
     end
 })
 
-CustomQuizTab:CreateTextbox({
+CustomQuizTab:CreateInput({
     Name = "Answer D",
     Placeholder = "Option D",
     Callback = function(value)
