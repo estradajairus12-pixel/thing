@@ -1177,6 +1177,14 @@ local currentQuizName = ""
 local currentQuestions = {}
 local isCreatingQuiz = false
 
+-- Temporary variables for question creation
+local tempQuestionText = nil
+local tempAnswerA = nil
+local tempAnswerB = nil
+local tempAnswerC = nil
+local tempAnswerD = nil
+local tempCorrectAnswer = nil
+
 CustomQuizTab:CreateSection("Create New Quiz")
 CustomQuizTab:CreateTextbox({
     Name = "Quiz Name",
