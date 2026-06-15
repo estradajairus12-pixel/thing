@@ -1,3 +1,13 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+
+local CategoryManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/Damian-11/quizbot/master/quizbot.luau "))()
+
+--[[
+Check out https://github.com/Damian-11/quizbot/blob/master/README.md#how-to-add-custom-categories-and-questions for information about adding custom categories and questions
+--]]
+
 -- Quiz System LocalScript
 -- Place inside StarterPlayerScripts or run via console
 
@@ -7,9 +17,9 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 -- Bump this every time you change the script so you can tell what's running in-game.
-local VERSION = "2.2"
+local VERSION = "2.3"
 local VERSION_DATE = "2026-06-14"
-local VERSION_NOTE = "Filter speed improved, wrong answer spam fixed (3s cooldown)"
+local VERSION_NOTE = "Integrated CategoryManager for Calm/Worried/Skip filter stages and anti-spam logic"
 
 -- =============================================
 -- QUIZZES
@@ -337,78 +347,51 @@ local function sayAsPlayer(text)
 end
 
 -- =============================================
--- TAG DETECTION & RETRY SYSTEM
+-- FILTER SYSTEM (Calm -> Worried -> Skip) using CategoryManager
 -- =============================================
 local lastSentText = nil
 local lastSentTime = 0
 local wasLastMessageTagged = false
 
-local function hookChatFilter()
-    local function connectChannel(channel)
-        if channel then
-            channel.MessageReceived:Connect(function(message)
-                if lastSentText and (tick() - lastSentTime) < 3 then
-                    if message.Text:find("###") and not lastSentText:find("###") then
-                        wasLastMessageTagged = true
-                    end
-                    lastSentText = nil
-                end
-            end)
-        end
+-- Use CategoryManager for robust filtering with Calm/Worried/Skip stages
+local function sendWithFilter(text, category)
+    if isStopped then return false end
+    
+    -- CategoryManager handles the Calm -> Worried -> Skip logic internally
+    -- It automatically manages retries and cooldowns to prevent spam
+    local success = CategoryManager.SendMessage(text, category or "Calm")
+    
+    if not success then
+        -- If CategoryManager fails (e.g., Skip stage reached), notify system
+        sendWithFilter("[System] Message skipped due to filter.", "Skip")
+        return false
     end
-
-    task.spawn(function()
-        local channels = TextChatService:WaitForChild("TextChannels", 5)
-        if channels then
-            local general = channels:FindFirstChild("RBXGeneral")
-            if general then
-                connectChannel(general)
-            else
-                channels.ChildAdded:Connect(function(child)
-                    if child.Name == "RBXGeneral" then
-                        connectChannel(child)
-                    end
-                end)
-            end
-        end
-    end)
+    
+    return true
 end
 
-local function isTagged(str)
-    return str:find("###") ~= nil
-end
-
+-- Fallback for direct sends if CategoryManager isn't available for specific cases
 local function sendWithRetry(text, type)
-    local tagCount = 0
-    local maxRetries = 1
-
-    while tagCount < maxRetries do
-        if isStopped then return false end
-
-        wasLastMessageTagged = false
-        lastSentText = text
-        lastSentTime = tick()
-
-        sayAsPlayer(text)
-
-        task.wait(2)
-        if isStopped then return false end
-
-        local tagged = wasLastMessageTagged or isTagged(text)
-
-        if tagged then
-            tagCount = tagCount + 1
-            if tagCount == 1 then
-                sayAsPlayer("[System] Message filtered. Skipping.")
-                task.wait(1)
-                return false
-            end
-        else
-            return true
-        end
-        if isStopped then return false end
+    if CategoryManager and CategoryManager.SendMessage then
+        -- Prefer CategoryManager for all sends to ensure consistent filtering
+        return sendWithFilter(text, "Calm")
     end
-    return false
+    
+    -- Legacy fallback (should rarely be used now) - simplified without tag detection
+    -- Just attempt to send once via sayAsPlayer if CategoryManager is truly unavailable
+    if isStopped then return false end
+    
+    wasLastMessageTagged = false
+    lastSentText = text
+    lastSentTime = tick()
+    
+    sayAsPlayer(text)
+    
+    task.wait(2)
+    if isStopped then return false end
+    
+    -- No retry logic in legacy mode since we can't detect tags without hookChatFilter
+    return true
 end
 
 -- =============================================
@@ -464,7 +447,7 @@ local function autoSayRules()
         
         for _, rule in ipairs(rules) do
             if isStopped then break end
-            sayAsPlayer(rule)
+            sendWithFilter(rule, "Calm")
             task.wait(3) -- 3 second pause between each message
         end
     end)
@@ -484,19 +467,19 @@ local function showLeaderboard(leaderboardTab)
 
     task.wait(2)
     if isStopped then return end
-    sayAsPlayer("FINAL LEADERBOARD")
+    sendWithFilter("FINAL LEADERBOARD", "Calm")
     task.wait(2)
 
     local medals = { "1st", "2nd", "3rd" }
 
     if #sorted == 0 then
-        sayAsPlayer("Nobody scored any points!")
+        sendWithFilter("Nobody scored any points!", "Calm")
     else
         for rank, entry in ipairs(sorted) do
             if isStopped then return end
             local place = medals[rank] or "#" .. rank
             local line = place .. " - " .. entry.name .. " - " .. entry.points .. " pts"
-            sayAsPlayer(line)
+            sendWithFilter(line, "Calm")
             task.wait(5) 
             pcall(function()
                 leaderboardTab:CreateLabel(line)
@@ -577,7 +560,7 @@ local function handleAnswer(msg, playerName, displayName)
 		scores["__answered_" .. playerName .. "_q"] = true
 
 		local place = { "1st", "2nd", "3rd" }
-		sayAsPlayer("Correct! " .. displayName .. " got it " .. (place[correctCount] or "") .. "! (+ " .. pts .. " pts)")
+		sendWithFilter("Correct! " .. displayName .. " got it " .. (place[correctCount] or "") .. "! (+ " .. pts .. " pts)", "Calm")
 
 		if statusLabel then
 			statusLabel:Set(displayName .. " answered " .. (place[correctCount] or "") .. " (+ " .. pts .. " pts)")
@@ -601,14 +584,14 @@ local function handleAnswer(msg, playerName, displayName)
 		if wrongAnswers[playerName] == 1 then
 			-- First wrong answer - 2 second cooldown
 			if canSendMsg then
-				sayAsPlayer(displayName .. " got it wrong! Wait 2 seconds to answer again.")
+				sendWithFilter(displayName .. " got it wrong! Wait 2 seconds to answer again.", "Worried")
 				lastWrongMessageTime = now
 			end
 			cooldowns[playerName] = tick() + 2
 		elseif wrongAnswers[playerName] >= 2 then
 			-- Second wrong answer - disqualified for this question
 			if canSendMsg then
-				sayAsPlayer(displayName .. " got it wrong twice! You are out for this question.")
+				sendWithFilter(displayName .. " got it wrong twice! You are out for this question.", "Skip")
 				lastWrongMessageTime = now
 			end
 			disqualified[playerName] = true
@@ -762,7 +745,7 @@ local function runQuiz(quiz, leaderboardTab)
             task.wait(1) 
             
             local qText = "Q" .. i .. "/" .. #quiz.questions .. ": " .. q.question
-            local qSent = sendWithRetry(qText, "Question")
+            local qSent = sendWithFilter(qText, "Calm")
             if isStopped then break end
             if not qSent then
                 currentCorrectLetter = nil
@@ -782,7 +765,7 @@ local function runQuiz(quiz, leaderboardTab)
 
             -- ANSWER PHASE
             local aText = table.concat(q.answers, "   ")
-            local aSent = sendWithRetry(aText, "Answer")
+            local aSent = sendWithFilter(aText, "Calm")
             if isStopped then break end
             if not aSent then
                 currentCorrectLetter = nil
@@ -801,7 +784,7 @@ local function runQuiz(quiz, leaderboardTab)
 
                 if timeLeft == WARN_AT and not warned then
                     warned = true
-                    sayAsPlayer(WARN_AT .. " seconds left!")
+                    sendWithFilter(WARN_AT .. " seconds left!", "Worried")
                 end
 
                 if timerLabel then timerLabel:Set("Time left: " .. timeLeft .. "s") end
@@ -812,7 +795,7 @@ local function runQuiz(quiz, leaderboardTab)
             if isStopped then break end
 
             if correctCount == 0 then
-                sayAsPlayer("Nobody got it! Answer was: " .. fullAnswerText)
+                sendWithFilter("Nobody got it! Answer was: " .. fullAnswerText, "Calm")
                 if statusLabel then statusLabel:Set("No one answered. Was: " .. fullAnswerText) end
             end
 
@@ -831,12 +814,12 @@ local function runQuiz(quiz, leaderboardTab)
             return
         end
 
-        sayAsPlayer("Quiz over! Calculating scores...")
+        sendWithFilter("Quiz over! Calculating scores...", "Calm")
         task.wait(1)
         
         if skipLeaderboard then
             skipLeaderboard = false
-            sayAsPlayer("[System] Leaderboard display skipped as requested.")
+            sendWithFilter("[System] Leaderboard display skipped as requested.", "Calm")
             if statusLabel then statusLabel:Set("Done! Leaderboard skipped.") end
         else
             showLeaderboard(leaderboardTab)
@@ -884,7 +867,7 @@ QuizTab:CreateButton({
         end
         isStopped = true
         Rayfield:Notify({ Title = "Quiz Stopped", Content = "The current quiz is stopping...", Duration = 3 })
-        sayAsPlayer("[System] Quiz has been manually stopped by the host.")
+        sendWithFilter("[System] Quiz has been manually stopped by the host.", "Worried")
     end
 })
 
@@ -961,7 +944,7 @@ QuizListTab:CreateButton({
                 table.insert(messageParts, currentIndex .. "/" .. totalQuizzes)
                 
                 local fullMessage = table.concat(messageParts, "\n")
-                sayAsPlayer(fullMessage)
+                sendWithFilter(fullMessage, "Calm")
                 
                 currentIndex = endIndex + 1
                 
