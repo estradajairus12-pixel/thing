@@ -1271,10 +1271,10 @@ CustomQuizTab:CreateButton({
         table.insert(currentQuestions, {
             question = tempQuestionText,
             answers = { 
-                "A) " .. tempAnswerA, 
-                "B) " .. tempAnswerB, 
-                "C) " .. tempAnswerC, 
-                "D) " .. tempAnswerD 
+                "A. " .. tempAnswerA, 
+                "B. " .. tempAnswerB, 
+                "C. " .. tempAnswerC, 
+                "D. " .. tempAnswerD 
             },
             correct = tempCorrectAnswer
         })
