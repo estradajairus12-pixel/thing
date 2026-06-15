@@ -1259,10 +1259,6 @@ CustomQuizTab:CreateDropdown({
 CustomQuizTab:CreateButton({
     Name = "Add Question to Quiz",
     Callback = function()
-        if not isCreatingQuiz then
-            Rayfield:Notify({ Title = "Error", Content = "Please start creating a quiz first.", Duration = 3 })
-            return
-        end
         if not tempQuestionText or not tempAnswerA or not tempAnswerB or not tempAnswerC or not tempAnswerD or not tempCorrectAnswer then
             Rayfield:Notify({ Title = "Error", Content = "Please fill in all question fields.", Duration = 3 })
             return
@@ -1299,10 +1295,6 @@ CustomQuizTab:CreateSection("Finish & Save Quiz")
 CustomQuizTab:CreateButton({
     Name = "Save Custom Quiz",
     Callback = function()
-        if not isCreatingQuiz then
-            Rayfield:Notify({ Title = "Error", Content = "Please start creating a quiz first.", Duration = 3 })
-            return
-        end
         if #currentQuestions == 0 then
             Rayfield:Notify({ Title = "Error", Content = "Please add at least one question.", Duration = 3 })
             return
@@ -1325,7 +1317,6 @@ CustomQuizTab:CreateButton({
             Duration = 4 
         })
         
-        isCreatingQuiz = false
         currentQuizName = ""
         currentQuestions = {}
     end
