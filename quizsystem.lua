@@ -7,9 +7,9 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 -- Bump this every time you change the script so you can tell what's running in-game.
-local VERSION = "2.1"
+local VERSION = "2.2"
 local VERSION_DATE = "2026-06-14"
-local VERSION_NOTE = "Starting quiz name notification added!"
+local VERSION_NOTE = "Filter speed improved, wrong answer spam fixed (3s cooldown)"
 
 -- =============================================
 -- QUIZZES
@@ -380,7 +380,7 @@ end
 
 local function sendWithRetry(text, type)
     local tagCount = 0
-    local maxRetries = 2
+    local maxRetries = 1
 
     while tagCount < maxRetries do
         if isStopped then return false end
@@ -391,7 +391,7 @@ local function sendWithRetry(text, type)
 
         sayAsPlayer(text)
 
-        task.wait(3)
+        task.wait(2)
         if isStopped then return false end
 
         local tagged = wasLastMessageTagged or isTagged(text)
@@ -399,11 +399,8 @@ local function sendWithRetry(text, type)
         if tagged then
             tagCount = tagCount + 1
             if tagCount == 1 then
-                sayAsPlayer("[System] The " .. type:lower() .. " was filtered. Repeating...")
-                task.wait(2)
-            elseif tagCount >= 2 then
-                sayAsPlayer("[System] Message still filtered. Skipping this " .. type:lower() .. ".")
-                task.wait(2)
+                sayAsPlayer("[System] Message filtered. Skipping.")
+                task.wait(1)
                 return false
             end
         else
@@ -427,7 +424,7 @@ local scores               = {}
 local wrongAnswers         = {} -- Tracks wrong answers per player
 local cooldowns            = {} -- Tracks cooldowns per player
 local lastWrongMessageTime = 0  -- Global cooldown for wrong answer messages
-local WRONG_MSG_COOLDOWN   = 0.5 -- Minimum time between wrong answer notifications
+local WRONG_MSG_COOLDOWN   = 3 -- 3 seconds cooldown to prevent spam (50 people = max ~2-3 messages)
 local disqualified         = {} -- Tracks disqualified players per question
 local statusLabel          = nil
 local questionLabel        = nil
