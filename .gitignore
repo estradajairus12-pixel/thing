@@ -1,1 +1,1 @@
-Nothing needs to be added to .gitignore since only a Lua source file (quizsystem.lua) was added, which is a source code file that should not be ignored.
+Nothing should be ignored based on the provided file changes. The only modified file is `quizsystem.lua`, which appears to be a source code file and should not be ignored.

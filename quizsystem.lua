@@ -1167,6 +1167,217 @@ SettingsTab:CreateButton({
 })
 
 -- =============================================
+-- TAB: Custom Quiz System
+-- =============================================
+local CustomQuizTab = Window:CreateTab("Custom Quiz System", 4483362458)
+
+-- Storage for custom quizzes
+local CustomQuizzes = {}
+local currentQuizName = ""
+local currentQuestions = {}
+local isCreatingQuiz = false
+
+CustomQuizTab:CreateSection("Create New Quiz")
+CustomQuizTab:CreateTextbox({
+    Name = "Quiz Name",
+    Placeholder = "Enter quiz name here...",
+    Callback = function(value)
+        currentQuizName = value
+    end
+})
+
+CustomQuizTab:CreateButton({
+    Name = "Start Creating Quiz",
+    Callback = function()
+        if currentQuizName == "" then
+            Rayfield:Notify({ Title = "Error", Content = "Please enter a quiz name first.", Duration = 3 })
+            return
+        end
+        isCreatingQuiz = true
+        currentQuestions = {}
+        Rayfield:Notify({ Title = "Quiz Created", Content = "Now add questions to: " .. currentQuizName, Duration = 3 })
+    end
+})
+
+CustomQuizTab:CreateSection("Add Question")
+CustomQuizTab:CreateTextbox({
+    Name = "Question Text",
+    Placeholder = "Enter your question...",
+    Callback = function(value)
+        tempQuestionText = value
+    end
+})
+
+CustomQuizTab:CreateTextbox({
+    Name = "Answer A",
+    Placeholder = "Option A",
+    Callback = function(value)
+        tempAnswerA = value
+    end
+})
+
+CustomQuizTab:CreateTextbox({
+    Name = "Answer B",
+    Placeholder = "Option B",
+    Callback = function(value)
+        tempAnswerB = value
+    end
+})
+
+CustomQuizTab:CreateTextbox({
+    Name = "Answer C",
+    Placeholder = "Option C",
+    Callback = function(value)
+        tempAnswerC = value
+    end
+})
+
+CustomQuizTab:CreateTextbox({
+    Name = "Answer D",
+    Placeholder = "Option D",
+    Callback = function(value)
+        tempAnswerD = value
+    end
+})
+
+CustomQuizTab:CreateDropdown({
+    Name = "Correct Answer",
+    Options = { "A", "B", "C", "D" },
+    Callback = function(value)
+        tempCorrectAnswer = value
+    end
+})
+
+CustomQuizTab:CreateButton({
+    Name = "Add Question to Quiz",
+    Callback = function()
+        if not isCreatingQuiz then
+            Rayfield:Notify({ Title = "Error", Content = "Please start creating a quiz first.", Duration = 3 })
+            return
+        end
+        if not tempQuestionText or not tempAnswerA or not tempAnswerB or not tempAnswerC or not tempAnswerD or not tempCorrectAnswer then
+            Rayfield:Notify({ Title = "Error", Content = "Please fill in all question fields.", Duration = 3 })
+            return
+        end
+        
+        table.insert(currentQuestions, {
+            question = tempQuestionText,
+            answers = { 
+                "A) " .. tempAnswerA, 
+                "B) " .. tempAnswerB, 
+                "C) " .. tempAnswerC, 
+                "D) " .. tempAnswerD 
+            },
+            correct = tempCorrectAnswer
+        })
+        
+        Rayfield:Notify({ 
+            Title = "Question Added", 
+            Content = "Question added! Total: " .. #currentQuestions, 
+            Duration = 2 
+        })
+        
+        -- Clear fields for next question
+        tempQuestionText = nil
+        tempAnswerA = nil
+        tempAnswerB = nil
+        tempAnswerC = nil
+        tempAnswerD = nil
+        tempCorrectAnswer = nil
+    end
+})
+
+CustomQuizTab:CreateSection("Finish & Save Quiz")
+CustomQuizTab:CreateButton({
+    Name = "Save Custom Quiz",
+    Callback = function()
+        if not isCreatingQuiz then
+            Rayfield:Notify({ Title = "Error", Content = "Please start creating a quiz first.", Duration = 3 })
+            return
+        end
+        if #currentQuestions == 0 then
+            Rayfield:Notify({ Title = "Error", Content = "Please add at least one question.", Duration = 3 })
+            return
+        end
+        
+        table.insert(CustomQuizzes, {
+            name = currentQuizName,
+            questions = currentQuestions
+        })
+        
+        -- Add to main Quizzes table
+        table.insert(Quizzes, {
+            name = currentQuizName,
+            questions = currentQuestions
+        })
+        
+        Rayfield:Notify({ 
+            Title = "Quiz Saved!", 
+            Content = currentQuizName .. " with " .. #currentQuestions .. " questions has been saved!", 
+            Duration = 4 
+        })
+        
+        isCreatingQuiz = false
+        currentQuizName = ""
+        currentQuestions = {}
+    end
+})
+
+CustomQuizTab:CreateSection("Saved Custom Quizzes")
+CustomQuizTab:CreateButton({
+    Name = "View Saved Custom Quizzes",
+    Callback = function()
+        if #CustomQuizzes == 0 then
+            Rayfield:Notify({ Title = "No Custom Quizzes", Content = "You haven't created any custom quizzes yet.", Duration = 3 })
+            return
+        end
+        
+        local quizList = "Your Custom Quizzes:\n"
+        for i, quiz in ipairs(CustomQuizzes) do
+            quizList = quizList .. i .. ". " .. quiz.name .. " (" .. #quiz.questions .. " questions)\n"
+        end
+        
+        sayAsPlayer("[Custom Quizzes] " .. quizList)
+        Rayfield:Notify({ Title = "Check Chat", Content = "Custom quiz list sent to chat.", Duration = 3 })
+    end
+})
+
+CustomQuizTab:CreateButton({
+    Name = "Delete Last Custom Quiz",
+    Callback = function()
+        if #CustomQuizzes == 0 then
+            Rayfield:Notify({ Title = "No Custom Quizzes", Content = "No custom quizzes to delete.", Duration = 3 })
+            return
+        end
+        
+        local lastQuiz = CustomQuizzes[#CustomQuizzes]
+        table.remove(CustomQuizzes, #CustomQuizzes)
+        
+        -- Remove from main Quizzes table
+        for i = #Quizzes, 1, -1 do
+            if Quizzes[i].name == lastQuiz.name then
+                table.remove(Quizzes, i)
+                break
+            end
+        end
+        
+        Rayfield:Notify({ 
+            Title = "Quiz Deleted", 
+            Content = "Deleted: " .. lastQuiz.name, 
+            Duration = 3 
+        })
+    end
+})
+
+CustomQuizTab:CreateSection("Instructions")
+CustomQuizTab:CreateLabel("1. Enter a quiz name and click 'Start Creating Quiz'")
+CustomQuizTab:CreateLabel("2. Fill in question text and all 4 answer options")
+CustomQuizTab:CreateLabel("3. Select the correct answer (A, B, C, or D)")
+CustomQuizTab:CreateLabel("4. Click 'Add Question to Quiz' for each question")
+CustomQuizTab:CreateLabel("5. When done, click 'Save Custom Quiz'")
+CustomQuizTab:CreateLabel("6. Your custom quiz will appear in the Quizzes tab!")
+
+-- =============================================
 -- TAB: Version
 -- =============================================
 local VersionTab = Window:CreateTab("Version", 4483362458)
@@ -1184,6 +1395,7 @@ VersionTab:CreateLabel("- Leaderboard tracking")
 VersionTab:CreateLabel("- Wrong answer penalty system")
 VersionTab:CreateLabel("- Customizable timing settings")
 VersionTab:CreateLabel("- Secret fly feature")
+VersionTab:CreateLabel("- **Custom Quiz System** - Create your own quizzes!")
 
 -- =============================================
 -- INIT
