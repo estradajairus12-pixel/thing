@@ -1169,7 +1169,7 @@ SettingsTab:CreateButton({
 -- =============================================
 -- TAB: Custom Quiz System
 -- =============================================
-local CustomQuizTab = Window:CreateTab("Custom Quiz System", 4483362458)
+local CustomQuizTab = Window:CreateTab("Custom Quiz System", 5043494403)
 
 -- Storage for custom quizzes
 local CustomQuizzes = {}
