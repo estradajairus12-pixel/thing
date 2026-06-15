@@ -1185,7 +1185,7 @@ local tempAnswerC = nil
 local tempAnswerD = nil
 local tempCorrectAnswer = nil
 
-CustomQuizTab:CreateSection("Create New Quiz")
+CustomQuizTab:CreateSection("📝 STEP 1: Enter Quiz Name")
 CustomQuizTab:CreateInput({
     Name = "Quiz Name",
     Placeholder = "Enter quiz name here...",
@@ -1195,70 +1195,75 @@ CustomQuizTab:CreateInput({
 })
 
 CustomQuizTab:CreateButton({
-    Name = "Start Creating Quiz",
+    Name = "✅ Initialize Quiz (Click After Entering Name)",
     Callback = function()
-        if currentQuizName == "" then
+        if currentQuizName == "" or currentQuizName == nil then
             Rayfield:Notify({ Title = "Error", Content = "Please enter a quiz name first.", Duration = 3 })
             return
         end
         isCreatingQuiz = true
         currentQuestions = {}
-        Rayfield:Notify({ Title = "Quiz Created", Content = "Now add questions to: " .. currentQuizName, Duration = 3 })
+        Rayfield:Notify({ Title = "Quiz Initialized", Content = "Now scroll down to add questions to: " .. currentQuizName, Duration = 4 })
     end
 })
 
-CustomQuizTab:CreateSection("Add Question")
+CustomQuizTab:CreateSection("📝 STEP 2: Add Questions")
 CustomQuizTab:CreateInput({
-    Name = "Question Text",
-    Placeholder = "Enter your question...",
+    Name = "❓ Question Text",
+    Placeholder = "Type your question here...",
     Callback = function(value)
         tempQuestionText = value
     end
 })
 
 CustomQuizTab:CreateInput({
-    Name = "Answer A",
-    Placeholder = "Option A",
+    Name = "🅰️ Answer A",
+    Placeholder = "Type answer option A...",
     Callback = function(value)
         tempAnswerA = value
     end
 })
 
 CustomQuizTab:CreateInput({
-    Name = "Answer B",
-    Placeholder = "Option B",
+    Name = "🅱️ Answer B",
+    Placeholder = "Type answer option B...",
     Callback = function(value)
         tempAnswerB = value
     end
 })
 
 CustomQuizTab:CreateInput({
-    Name = "Answer C",
-    Placeholder = "Option C",
+    Name = "🅲 Answer C",
+    Placeholder = "Type answer option C...",
     Callback = function(value)
         tempAnswerC = value
     end
 })
 
 CustomQuizTab:CreateInput({
-    Name = "Answer D",
-    Placeholder = "Option D",
+    Name = "🅳 Answer D",
+    Placeholder = "Type answer option D...",
     Callback = function(value)
         tempAnswerD = value
     end
 })
 
 CustomQuizTab:CreateDropdown({
-    Name = "Correct Answer",
+    Name = "✅ Select Correct Answer",
     Options = { "A", "B", "C", "D" },
+    CurrentOption = "A",
     Callback = function(value)
         tempCorrectAnswer = value
     end
 })
 
 CustomQuizTab:CreateButton({
-    Name = "Add Question to Quiz",
+    Name = "➕ Add This Question to Quiz",
     Callback = function()
+        if not isCreatingQuiz or currentQuizName == "" then
+            Rayfield:Notify({ Title = "Error", Content = "Please initialize the quiz first (Step 1).", Duration = 3 })
+            return
+        end
         if not tempQuestionText or not tempAnswerA or not tempAnswerB or not tempAnswerC or not tempAnswerD or not tempCorrectAnswer then
             Rayfield:Notify({ Title = "Error", Content = "Please fill in all question fields.", Duration = 3 })
             return
@@ -1276,8 +1281,8 @@ CustomQuizTab:CreateButton({
         })
         
         Rayfield:Notify({ 
-            Title = "Question Added", 
-            Content = "Question added! Total: " .. #currentQuestions, 
+            Title = "Question Added!", 
+            Content = "Total questions in '" .. currentQuizName .. "': " .. #currentQuestions, 
             Duration = 2 
         })
         
@@ -1291,12 +1296,16 @@ CustomQuizTab:CreateButton({
     end
 })
 
-CustomQuizTab:CreateSection("Finish & Save Quiz")
+CustomQuizTab:CreateSection("💾 STEP 3: Save Your Quiz")
 CustomQuizTab:CreateButton({
-    Name = "Save Custom Quiz",
+    Name = "💿 Save Custom Quiz (Finalizes It)",
     Callback = function()
+        if not isCreatingQuiz or currentQuizName == "" then
+            Rayfield:Notify({ Title = "Error", Content = "Please initialize a quiz first.", Duration = 3 })
+            return
+        end
         if #currentQuestions == 0 then
-            Rayfield:Notify({ Title = "Error", Content = "Please add at least one question.", Duration = 3 })
+            Rayfield:Notify({ Title = "Error", Content = "Please add at least one question before saving.", Duration = 3 })
             return
         end
         
@@ -1305,44 +1314,46 @@ CustomQuizTab:CreateButton({
             questions = currentQuestions
         })
         
-        -- Add to main Quizzes table
+        -- Add to main Quizzes table so it appears in the Quizzes tab
         table.insert(Quizzes, {
             name = currentQuizName,
             questions = currentQuestions
         })
         
         Rayfield:Notify({ 
-            Title = "Quiz Saved!", 
-            Content = currentQuizName .. " with " .. #currentQuestions .. " questions has been saved!", 
-            Duration = 4 
+            Title = "🎉 Quiz Saved Successfully!", 
+            Content = "'" .. currentQuizName .. "' with " .. #currentQuestions .. " questions is now available in the Quizzes tab!", 
+            Duration = 5 
         })
         
+        -- Reset for next quiz
         currentQuizName = ""
         currentQuestions = {}
+        isCreatingQuiz = false
     end
 })
 
-CustomQuizTab:CreateSection("Saved Custom Quizzes")
+CustomQuizTab:CreateSection("📚 Manage Saved Custom Quizzes")
 CustomQuizTab:CreateButton({
-    Name = "View Saved Custom Quizzes",
+    Name = "👁️ View All Saved Custom Quizzes",
     Callback = function()
         if #CustomQuizzes == 0 then
-            Rayfield:Notify({ Title = "No Custom Quizzes", Content = "You haven't created any custom quizzes yet.", Duration = 3 })
+            Rayfield:Notify({ Title = "No Custom Quizzes", Content = "You haven't created any custom quizzes yet. Go to Step 1 to create one!", Duration = 3 })
             return
         end
         
-        local quizList = "Your Custom Quizzes:\n"
+        local quizList = "=== YOUR CUSTOM QUIZZES ===\n"
         for i, quiz in ipairs(CustomQuizzes) do
-            quizList = quizList .. i .. ". " .. quiz.name .. " (" .. #quiz.questions .. " questions)\n"
+            quizList = quizList .. "\n" .. i .. ". " .. quiz.name .. " (" .. #quiz.questions .. " questions)"
         end
         
         sayAsPlayer("[Custom Quizzes] " .. quizList)
-        Rayfield:Notify({ Title = "Check Chat", Content = "Custom quiz list sent to chat.", Duration = 3 })
+        Rayfield:Notify({ Title = "Check Chat", Content = "Full list of your custom quizzes sent to chat.", Duration = 3 })
     end
 })
 
 CustomQuizTab:CreateButton({
-    Name = "Delete Last Custom Quiz",
+    Name = "🗑️ Delete Most Recent Custom Quiz",
     Callback = function()
         if #CustomQuizzes == 0 then
             Rayfield:Notify({ Title = "No Custom Quizzes", Content = "No custom quizzes to delete.", Duration = 3 })
@@ -1368,13 +1379,8 @@ CustomQuizTab:CreateButton({
     end
 })
 
-CustomQuizTab:CreateSection("Instructions")
-CustomQuizTab:CreateLabel("1. Enter a quiz name and click 'Start Creating Quiz'")
-CustomQuizTab:CreateLabel("2. Fill in question text and all 4 answer options")
-CustomQuizTab:CreateLabel("3. Select the correct answer (A, B, C, or D)")
-CustomQuizTab:CreateLabel("4. Click 'Add Question to Quiz' for each question")
-CustomQuizTab:CreateLabel("5. When done, click 'Save Custom Quiz'")
-CustomQuizTab:CreateLabel("6. Your custom quiz will appear in the Quizzes tab!")
+CustomQuizTab:CreateSection("ℹ️ How to Use")
+CustomQuizTab:CreateLabel("1. Enter a quiz name in Step 1\n2. Click 'Initialize Quiz'\n3. Fill in question and answers in Step 2\n4. Select the correct answer\n5. Click 'Add Question' (repeat for more questions)\n6. Click 'Save Custom Quiz' in Step 3\n7. Your quiz will appear in the main 'Quizzes' tab!")
 
 -- =============================================
 -- TAB: Version
